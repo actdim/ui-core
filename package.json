@@ -1,0 +1,16 @@
+{
+    "name": "@actdim/ui-core",
+    "version": "0.1.0",
+    "description": "Shared UI foundation, theme system, design tokens, and Dynstruct component conventions for Actdim applications",
+    "author": "Pavel Borodaev",
+    "license": "MIT",
+    "type": "module",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/actdim/ui-core.git"
+    },
+    "bugs": {
+        "url": "https://github.com/actdim/ui-core/issues"
+    },
+    "homepage": "https://github.com/actdim/ui-core/#readme"
+}
