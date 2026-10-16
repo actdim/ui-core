@@ -21,6 +21,8 @@ flowchart TD
     INDEX --> T_ADAPTIVE_LAYOUT
     T_ADAPTIVE_OVERLAYS["Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu)"]
     INDEX --> T_ADAPTIVE_OVERLAYS
+    T_DEPENDENCIES["Dependencies & Submodules AI Documentation and Rules"]
+    INDEX --> T_DEPENDENCIES
     T_DEVELOPER_GUIDE["@actdim/ui-core Developer & Consumer Integration Guide"]
     INDEX --> T_DEVELOPER_GUIDE
     T_FRONTEND_CONVENTIONS["Frontend Coding Conventions (Dynstruct + MsgMesh)"]
@@ -38,6 +40,7 @@ flowchart TD
 
 - **[Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService)](./topic--adaptive-layout.md)** (reference) `layout`, `tiers`, `safe-area`, `backstack`, `navigation`, `dynstruct`, `msgmesh`
 - **[Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu)](./topic--adaptive-overlays.md)** (reference) `overlays`, `dialogs`, `drawers`, `menus`, `backstack`, `dynstruct`
+- **[Dependencies & Submodules AI Documentation and Rules](./topic--dependencies.md)** (topic) `dependencies`, `ai-context`, `submodules`, `vendor`, `rules`
 - **[@actdim/ui-core Developer & Consumer Integration Guide](./topic--developer-guide.md)** (guide) `developer-guide`, `integration`, `adoption`, `migration`, `theming`, `tailwind`, `dynstruct`, `overlays`
 - **[Frontend Coding Conventions (Dynstruct + MsgMesh)](./topic--frontend-conventions.md)** (reference) `conventions`, `dynstruct`, `msgmesh`, `theme`, `overlays`, `rules`
 - **[Theme Tokens and the tw() Class Helper](./topic--theme-tokens.md)** (reference) `theme`, `design-tokens`, `tailwind`, `styling`, `mui`, `conventions`
