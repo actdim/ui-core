@@ -17,8 +17,16 @@ related: []
 
 # UI Core shared foundation, themes, overlays and guidelines
 
-Describe the feature, requirements, and background context here.
+## Problem Statement / Background
+Monorepo required a shared UI foundation package (@actdim/ui-core) unifying design tokens, Tailwind v4 theme, adaptive layout tiers, and overlay contracts.
+
+## Implementation Details
+1. Created @actdim/ui-core package with theme tokens, CSS custom properties, and Tailwind theme plugin.
+2. Implemented LayoutService and BackStackService for responsive viewport tiers and modal overlays.
+3. Built AdaptiveDialog, ActionSheet, and AdaptiveMenu components.
 
 ## Acceptance Criteria
-- [ ] Task requirement 1
-- [ ] Automated tests passing
+- [x] Core theme token generation and runtime contracts implemented
+- [x] LayoutService and responsive tiers (compact, medium, expanded) functional
+- [x] Adaptive overlays integrated with BackStackService
+- [x] All 50 unit tests passing

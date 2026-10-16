@@ -16,8 +16,15 @@ related: []
 
 # Document IDE setup for tw() in ui-core theme tokens
 
-Describe the feature, requirements, and background context here.
+## Problem Statement / Background
+Developers needed documentation on configuring VS Code and IDEs to enable Tailwind v4 and semantic theme token autocomplete inside tw() helpers.
+
+## Implementation Details
+1. Created topic documentation explaining tailwindCSS.experimental.classRegex configuration.
+2. Added editor settings snippet for VS Code settings.json.
+3. Linked guide in docs/INDEX.md.
 
 ## Acceptance Criteria
-- [ ] Task requirement 1
-- [ ] Automated tests passing
+- [x] IDE setup instructions documented in topic--developer-guide.md
+- [x] VS Code settings snippet provided with classRegex patterns
+- [x] Documentation validated and indexed
