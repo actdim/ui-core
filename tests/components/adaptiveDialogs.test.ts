@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { type BackHandler } from '../../src/layout/backStackTypes';
-import { registerBackHandler, unregisterBackHandler } from '../../src/layout/BackStackService';
+import {
+    registerBackHandler,
+    unregisterBackHandler,
+    setUnhandledBackHandler,
+    getUnhandledBackHandler,
+} from '../../src/layout/BackStackService';
 import { type LayoutTier } from '../../src/layout/layoutTypes';
 import { type MenuItemAction, type ActionSheetStruct } from '../../src/components/ActionSheet';
 import { type AdaptiveDialogProps } from '../../src/components/AdaptiveDialog';
@@ -129,6 +134,15 @@ describe('Adaptive Dialogs, Menus & BackStack Handling', () => {
             expect(() => {
                 unregisterBackHandler('test-pre-init');
             }).not.toThrow();
+        });
+
+        it('registers and unregisters unhandled back handler safely', () => {
+            const fallback = () => true;
+            setUnhandledBackHandler(fallback);
+            expect(getUnhandledBackHandler()).toBe(fallback);
+
+            setUnhandledBackHandler(null);
+            expect(getUnhandledBackHandler()).toBeNull();
         });
     });
 

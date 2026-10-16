@@ -29,6 +29,10 @@ export const setUnhandledBackHandler = (handler: (() => boolean) | null) => {
     unhandledBackCallback = handler;
 };
 
+export const getUnhandledBackHandler = (): (() => boolean) | null => {
+    return unhandledBackCallback;
+};
+
 export const registerBackHandler = (handler: BackHandler) => {
     if (sharedMsgBus) {
         void sharedMsgBus.send({
@@ -95,7 +99,8 @@ export const useBackStackService = (
         const hasHandlers = (m.handlers || []).length > 0;
         const notAtRoot = typeof window !== 'undefined'
             && window.location.pathname !== '/'
-            && window.location.pathname !== '';
+            && window.location.pathname !== ''
+            && window.location.pathname !== '/explorer';
         c.msgBus.send({
             channel: 'APP.NAV.CAN_GO_BACK',
             payload: {
@@ -123,6 +128,7 @@ export const useBackStackService = (
         if (unhandledBackCallback) {
             try {
                 if (unhandledBackCallback()) {
+                    evaluateCanGoBack();
                     return { handled: true };
                 }
             } catch (err) {
