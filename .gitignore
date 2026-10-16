@@ -8,5 +8,10 @@ dist/
 .along/diagnostics/
 .along/dashboard.html
 .along/DASHBOARD.md
+# VitePress
+.dist-docs/
+docs/.vitepress/dist
+docs/.vitepress/cache
+
 __pycache__/
 *.pyc
