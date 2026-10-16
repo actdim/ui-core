@@ -4,7 +4,7 @@
 <!-- No active issues -->
 
 ## Backlog
-<!-- No backlog issues -->
+- [ ] `(task)` [agent-native-tokens-and-rules](ISSUES/task--agent-native-tokens-and-rules.md)
 
 ## Done (recent)
 - [x] `(task)` [separate-docs-and-vitepress-build](ISSUES/done/task--separate-docs-and-vitepress-build.md)
