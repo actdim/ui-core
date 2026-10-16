@@ -1,0 +1,1072 @@
+/*
+================================================================================
+  THEME TOKENS
+================================================================================
+
+  One file that controls the whole visual style of the application:
+  colors, spacing, sizes, typography, borders, corners, shadows, layers, motion.
+
+  The file is app-agnostic: copy it into another project and change the values,
+  keep the names.
+
+  --------------------------------------------------------------------------
+  HOW IT WORKS
+  --------------------------------------------------------------------------
+
+  1. Every token is a CSS custom property declared in `@theme static`.
+     Tailwind emits all of them on `:root`, so they are plain CSS variables:
+     usable from Tailwind classes, from hand-written CSS (`var(--color-fg-muted)`)
+     and from JS (MUI theme, canvas, charts) via getComputedStyle.
+     `static` = emit every variable even if no class uses it yet.
+
+  2. The variable prefix is a Tailwind namespace. It decides which classes
+     Tailwind generates for the token automatically:
+
+       --color-*               -> bg-*, text-*, border-*, ring-*, outline-*, fill-*, ...
+       --spacing-*             -> p-*, m-*, gap-*, space-*, w-*, h-*, size-*, inset-*, ...
+       --container-*           -> max-w-*, min-w-*, w-*
+       --text-*                -> text-*  (font size + line height + weight in one class)
+       --font-*                -> font-*  (family)
+       --font-weight-*         -> font-*  (weight)
+       --border-width-*        -> border-*, border-t-*, divide-x-*, ...
+       --ring-width-*          -> ring-*
+       --outline-width-*       -> outline-*
+       --radius-*              -> rounded-*, rounded-t-*, ...
+       --shadow-*              -> shadow-*
+       --z-index-*             -> z-*
+       --opacity-*             -> opacity-*
+       --transition-duration-* -> duration-*
+       --ease-*                -> ease-*
+
+     Example: `--spacing-normal: 0.75rem` gives `p-normal`, `gap-normal`,
+     `mt-normal`, ... with no extra code.
+
+  3. Themes and modes override the SAME variables (see the end of the file):
+       .dark                  - dark color scheme
+       [data-tier="compact"]  - phone layout (denser, touch-sized controls)
+     Classes in markup never change; `dark:` prefixes are not needed.
+
+  --------------------------------------------------------------------------
+  NAMING RULES
+  --------------------------------------------------------------------------
+
+  - A name says WHAT the value is for, never what the value is
+    (`fg-muted`, not `slate-500`; `p-normal`, not `p-3`).
+  - Two kinds of names:
+      * object names - when the value belongs to a UI object.
+        One vocabulary is reused in every scale, so an object is styled
+        with the same word everywhere:
+          page     - the app background behind everything
+          panel    - card, side panel, list container
+          inset    - recessed area inside a panel (input, code, well)
+          control  - button, input, select, chip
+          popup    - menu, popover, dropdown, autocomplete list
+          dialog   - modal window, drawer, bottom sheet
+          toast    - notification
+          header / sidebar / bottom-nav - app shell parts
+        e.g. a panel: `bg-surface-panel rounded-panel shadow-panel`
+      * degree names - when the value is just "less or more"
+        (spacing, text emphasis, border thickness, duration).
+  - Color names always start with their group (surface-, fg-, line-, intent),
+    because Tailwind puts all colors into one list: `--color-muted` would give
+    `text-muted`, `bg-muted`, `border-muted` and nobody could tell what it is for.
+  - Sizes inside one object use sm / md / lg, like the MUI `size` prop.
+
+  --------------------------------------------------------------------------
+  TOKEN TABLE (all scales at a glance; details in the numbered sections)
+  --------------------------------------------------------------------------
+
+  #  | Scale            | Element          | Example class           | Use for
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  1  | Surface          | page             | bg-surface-page         | app background behind everything
+     | (background)     | panel            | bg-surface-panel        | cards, side panels, main content area
+     |                  | inset            | bg-surface-inset        | inputs, code blocks, wells inside a panel
+     |                  | popup            | bg-surface-popup        | menus, popovers, dropdowns
+     |                  | dialog           | bg-surface-dialog       | modal dialogs, drawers, bottom sheets
+     |                  | hover            | hover:bg-surface-hover  | hovered row / item / ghost button
+     |                  | selected         | bg-surface-selected     | selected row, active nav item, tab
+     |                  | inverse          | bg-surface-inverse      | tooltips, snackbars (opposite scheme)
+     |                  | scrim            | bg-surface-scrim        | dimming under a modal
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  2  | Foreground       | fg-default       | text-fg-default         | main text, headings, values
+     | (text, icons)    | fg-muted         | text-fg-muted           | descriptions, labels, metadata
+     |                  | fg-faint         | text-fg-faint           | placeholders, hints, timestamps
+     |                  | fg-disabled      | text-fg-disabled        | disabled controls
+     |                  | fg-inverse       | text-fg-inverse         | text on surface-inverse
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  3  | Line             | line-default     | border-line-default     | regular border and divider
+     | (borders)        | line-muted       | divide-line-muted       | weak divider between rows
+     |                  | line-strong      | border-line-strong      | input border, emphasized edge
+     |                  | focus            | focus-visible:focus-ring| keyboard focus indicator
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  4  | Intent           | primary          | bg-primary              | main action: Save, Submit, links
+     | (meaning)        | secondary        | bg-secondary            | alternative accent
+     |                  | success          | text-success            | positive outcome: saved, valid
+     |                  | info             | bg-info-soft            | tips, neutral notices
+     |                  | warning          | bg-warning-soft         | risk, attention required
+     |                  | danger           | bg-danger               | delete, error
+     |                  | neutral          | bg-neutral-soft         | tags, default badges, plain buttons
+     |   roles of each  | <intent>         | bg-danger               | solid fill, colored text / icons
+     |   intent         | <intent>-strong  | hover:bg-danger-strong  | hover fill, text on soft background
+     |                  | <intent>-soft    | bg-danger-soft          | pale background: alerts, badges
+     |                  | <intent>-line    | border-danger-line      | border of soft alerts / badges
+     |                  | <intent>-contrast| text-danger-contrast    | text on the solid fill
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  5  | Spacing          | micro    (2px)   | py-micro                | optical nudge, badge padding-y
+     | (p, m, gap)      | tight    (4px)   | gap-tight               | icon next to text, inside chips
+     |                  | snug     (8px)   | gap-snug                | items in a row, list items
+     |                  | normal   (12px)  | px-normal               | control padding-x, small cards
+     |                  | relaxed  (16px)  | p-relaxed               | panel padding, between groups
+     |                  | loose    (24px)  | gap-loose               | between sections, page padding
+     |                  | spacious (32px)  | py-spacious             | large blocks, page sections
+     |                  | vast     (64px)  | py-vast                 | empty states, hero areas
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  6  | Object size      | control-xs/sm/md/lg | h-control-md            | height of buttons, inputs (28/32/40/48)
+     | (h, w, size)     | icon-sm/md/lg       | size-icon-md            | icons (16/20/24)
+     |                  | avatar-sm/md/lg     | size-avatar-md          | avatars, thumbnails (24/32/48)
+     |                  | cover-sm/md         | w-cover-md              | book / media covers (112/144)
+     |                  | touch               | min-h-touch min-w-touch | minimum tap target (44)
+     |                  | header              | h-header                | app header height (56)
+     |                  | bottom-nav          | h-bottom-nav            | bottom navigation height (56)
+     |                  | sidebar             | w-sidebar               | side navigation width (288)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  7  | Container width  | form             | max-w-form              | single-column forms (448)
+     | (max-w)          | dialog-sm/md/lg  | max-w-dialog-md         | dialogs (384/512/768)
+     |                  | popup            | max-w-popup             | menus, popovers, tooltips (320)
+     |                  | content          | max-w-content           | single-column content pages (1024)
+     |                  | page             | max-w-page              | page content on wide screens (1280)
+     |                  | prose (built-in) | max-w-prose             | column of readable text (65ch)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  8  | Text style       | micro            | text-micro              | tiny counters, file-type tags (10)
+     |                  | caption          | text-caption            | metadata, badges, helper text (12)
+     | (size + line     | label            | text-label              | buttons, tabs, field labels (14 medium)
+     |  height + weight)| body             | text-body               | default interface text (14)
+     |                  | body-lg          | text-body-lg            | reading text, descriptions (16)
+     |                  | title            | text-title              | card / dialog / section title (18)
+     |                  | headline         | text-headline           | page heading (24)
+     |                  | display          | text-display            | sign-in, empty states, hero (32)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  9  | Emphasis         | regular          | font-regular            | normal text (400)
+     | (weight)         | emphasis         | font-emphasis           | light emphasis, active item (500)
+     |                  | strong           | font-strong             | important values (600)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  10 | Font family      | ui               | font-ui                 | interface
+     |                  | prose            | font-prose              | long-form reading content
+     |                  | code             | font-code               | code, paths, hashes
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  11 | Line thickness   | thin             | border-thin             | regular border (1px)
+     | (border, ring,   | thick            | border-thick, ring-thick| selected, focus (2px)
+     |  outline)        | heavy            | border-b-heavy          | active tab / nav indicator (3px)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  12 | Corners          | control          | rounded-control         | buttons, inputs, chips (8)
+     | (radius)         | panel            | rounded-panel           | cards, panels, alerts (12)
+     |                  | popup            | rounded-popup           | menus, popovers (12)
+     |                  | dialog           | rounded-dialog          | dialogs, bottom sheets (16)
+     |                  | full (built-in)  | rounded-full            | pills, avatars, toggles
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  13 | Elevation        | panel            | shadow-panel            | card resting on the page
+     | (shadow)         | popup            | shadow-popup            | menu / popover
+     |                  | dialog           | shadow-dialog           | modal dialog
+     |                  | none (built-in)  | shadow-none             | flat
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  14 | Layer            | sticky           | z-sticky                | sticky table / list headers (10)
+     | (z-index)        | header           | z-header                | app header, bottom nav (1100)
+     |                  | drawer           | z-drawer                | side drawer (1200)
+     |                  | dialog           | z-dialog                | modal dialog + scrim (1300)
+     |                  | popup            | z-popup                 | menus, popovers (1350)
+     |                  | toast            | z-toast                 | notifications (1400)
+     |                  | tooltip          | z-tooltip               | tooltips (1500)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  15 | Motion           | short            | duration-short          | hover, press, color change (120ms)
+     |                  | medium           | duration-medium         | expand, menus appearing (200ms)
+     |                  | long             | duration-long           | dialogs, drawers, pages (300ms)
+     |                  | standard         | ease-standard           | movement within the screen
+     |                  | enter            | ease-enter              | element appearing
+     |                  | exit             | ease-exit               | element leaving
+  ---+------------------+------------------+-------------------------+------------------------------------------
+  16 | State opacity    | disabled         | opacity-disabled        | disabled controls (38%)
+     |                  | muted            | opacity-muted           | dimmed but active content (70%)
+  ---+------------------+------------------+-------------------------+------------------------------------------
+     | Layout tier      | compact          | compact:hidden          | phones (data-tier="compact")
+     | (variants)       | medium           | medium:grid-cols-2      | tablets
+     |                  | expanded         | expanded:grid-cols-3    | desktops
+
+  --------------------------------------------------------------------------
+  HOW TO READ EACH SECTION
+  --------------------------------------------------------------------------
+
+  Based on  - the public design systems / standards the names and values
+              follow, so the scale is familiar and not invented ad hoc.
+  Replaces  - Tailwind classes used for the same purpose in the current
+              code (with usage counts from webapp/src at the time of writing).
+              This is the migration map.
+
+  Every token has its own comment: what it is and where to use it.
+
+  Values are taken from the Tailwind default palette / scale (named in the
+  comment), so the current look stays the same after migration.
+
+  Plain Tailwind classes (`p-4`, `text-slate-500`) still work. See STRICT MODE
+  at the end to forbid them once the code is migrated.
+*/
+
+
+/* ============================================================================
+   1. COLOR - SURFACES  (bg-surface-*)
+   ----------------------------------------------------------------------------
+   Backgrounds of areas, ordered from the bottom layer up.
+
+   Based on  Atlassian elevation.surface (sunken / default / raised / overlay),
+             GitHub Primer canvas (default / inset / overlay),
+             IBM Carbon layer-hover / layer-selected,
+             Material 3 "scrim".
+   Replaces  bg-slate-50 (54), bg-white, bg-slate-100 (81), bg-slate-900 (33),
+             bg-slate-800 (48), dark:bg-* pairs.
+   ============================================================================ */
+@theme static {
+    /* Page: app background behind everything, slightly tinted so panels stand
+       out. Use on <body> / the app shell. Value: slate-50. */
+    --color-surface-page: #f8fafc;
+
+    /* Panel: cards, side panels, list containers, main content area.
+       Value: white. */
+    --color-surface-panel: #ffffff;
+
+    /* Inset: recessed area inside a panel - input fields, code blocks, wells,
+       secondary info boxes. Darker than the panel. Value: slate-100. */
+    --color-surface-inset: #f1f5f9;
+
+    /* Popup: floating non-modal layers - menus, popovers, dropdowns,
+       autocomplete lists. Value: white. */
+    --color-surface-popup: #ffffff;
+
+    /* Dialog: modal dialogs, drawers, bottom sheets. Value: white. */
+    --color-surface-dialog: #ffffff;
+
+    /* Hover: background of a hovered row / list item / ghost button.
+       Translucent, so it works on top of any surface. Value: slate-900 @ 5%. */
+    --color-surface-hover: rgb(15 23 42 / 0.05);
+
+    /* Selected: background of the selected / active item - list row,
+       nav item, tab. Value: blue-600 @ 8%. */
+    --color-surface-selected: rgb(37 99 235 / 0.08);
+
+    /* Inverse: opposite-scheme surface - app header / footer chrome, tooltips,
+       snackbars (dark on the light theme). Value: slate-900. */
+    --color-surface-inverse: #0f172a;
+
+    /* Scrim: dimming layer under a modal dialog or drawer.
+       Value: slate-900 @ 50%. */
+    --color-surface-scrim: rgb(15 23 42 / 0.5);
+}
+
+
+/* ============================================================================
+   2. COLOR - FOREGROUND  (text-fg-*, fill-fg-*)
+   ----------------------------------------------------------------------------
+   "fg" = foreground: color of text and icons drawn on a surface.
+   Ordered from most to least prominent.
+   (Not "text-": Tailwind already starts text color classes with `text-`,
+   it would read `text-text-muted`.)
+
+   Based on  GitHub Primer fg.default / fg.muted / fg.subtle,
+             IBM Carbon text-primary / secondary / placeholder / disabled,
+             shadcn/ui foreground / muted-foreground.
+             "faint" = Primer "subtle"; renamed because "subtle" vs "muted"
+             does not tell which one is lighter.
+   Replaces  text-slate-800 (78), text-slate-900 (37), text-slate-700 (58),
+             text-slate-600 (77), text-slate-500 (116), text-slate-400 (192),
+             text-slate-300 (49), dark:text-* pairs.
+   ============================================================================ */
+@theme static {
+    /* Default: main text - content, headings, values. Value: slate-800. */
+    --color-fg-default: #1e293b;
+
+    /* Muted: secondary text - descriptions, field labels, metadata,
+       secondary icons. Value: slate-500. */
+    --color-fg-muted: #64748b;
+
+    /* Faint: least prominent readable text - placeholders, hints, timestamps,
+       decorative icons. Value: slate-400. */
+    --color-fg-faint: #94a3b8;
+
+    /* Disabled: text and icons of disabled controls. Value: slate-300. */
+    --color-fg-disabled: #cbd5e1;
+
+    /* Inverse: text on `surface-inverse` (tooltips, snackbars).
+       Value: slate-50. */
+    --color-fg-inverse: #f8fafc;
+}
+
+
+/* ============================================================================
+   3. COLOR - LINES  (border-line-*, divide-line-*)
+   ----------------------------------------------------------------------------
+   "line" = color of borders and dividers: card outline, separator between
+   list items, input border, table grid.
+   (Not "border-": the class would read `border-border`.)
+
+   Based on  GitHub Primer border.default / border.muted,
+             Material 3 outline / outline-variant,
+             Primer focus.outlineColor.
+   Replaces  border-slate-200 (124), border-slate-100, border-slate-300,
+             border-slate-800 (49, dark), dark:border-* pairs.
+   ============================================================================ */
+@theme static {
+    /* Default: regular border and divider - card outline, separators.
+       Value: slate-200. */
+    --color-line-default: #e2e8f0;
+
+    /* Muted: weak divider inside a panel - between list rows, table rows.
+       Value: slate-100. */
+    --color-line-muted: #f1f5f9;
+
+    /* Strong: emphasized border - input fields, hovered outline, active edges.
+       Value: slate-300. */
+    --color-line-strong: #cbd5e1;
+
+    /* Focus: keyboard focus indicator. Used by the `focus-ring` utility.
+       Value: blue-500. */
+    --color-focus: #3b82f6;
+}
+
+
+/* ============================================================================
+   4. COLOR - INTENT  (bg-danger, text-danger-strong, bg-danger-soft, ...)
+   ----------------------------------------------------------------------------
+   Color by meaning. Names match the `Intent` type of the app contracts:
+     primary   - main action / emphasis: Save, Submit, links, selection
+     secondary - alternative accent, lower emphasis than primary
+     success   - positive outcome: saved, completed, valid
+     info      - neutral information, tips, notices
+     warning   - risk, attention required, action still possible
+     danger    - destructive or failed: delete, error
+     neutral   - no special meaning: tags, default badges, plain buttons
+
+   Five roles per intent:
+     <intent>          base color: solid fill (bg-), colored text and icons
+                       on normal surfaces (text-), outline borders (border-)
+     <intent>-strong   stronger shade: hover / pressed solid fill,
+                       text on the soft background
+     <intent>-soft     pale tinted background: soft badges, alerts, banners,
+                       hover of ghost / outline buttons
+     <intent>-line     border of soft badges and alerts
+     <intent>-contrast text and icons on top of the solid base fill
+
+   Variant recipes (Variant type: solid / outline / ghost, plus soft):
+     solid    bg-danger text-danger-contrast hover:bg-danger-strong
+     outline  border border-danger text-danger hover:bg-danger-soft
+     ghost    text-danger hover:bg-danger-soft
+     soft     bg-danger-soft text-danger-strong border border-danger-line
+
+   Based on  Intent names: Blueprint / Bootstrap / Chakra semantic colors.
+             Roles: MUI palette main / dark / light / contrastText
+               (base = main, strong = dark, soft ~ light, contrast = contrastText),
+             GitHub Primer emphasis / fg / subtle / muted,
+             Radix Themes solid / soft variants.
+   Replaces  bg-rose-50 (30) + border-rose-200 (27) + text-rose-700 (24),
+             text-rose-600, bg-blue-50 (30), text-blue-600 (56),
+             bg-blue-600 (14), text-indigo-600 (20), emerald / amber / sky
+             families.
+   ============================================================================ */
+@theme static {
+    /* primary (blue) */
+    /* Base: primary button fill, links, selected icons. Value: blue-600. */
+    --color-primary: #2563eb;
+    /* Strong: primary button hover / pressed, text on primary-soft. blue-700. */
+    --color-primary-strong: #1d4ed8;
+    /* Soft: selected chip, info-like highlight, ghost hover. blue-50. */
+    --color-primary-soft: #eff6ff;
+    /* Line: border of a primary soft badge / callout. blue-200. */
+    --color-primary-line: #bfdbfe;
+    /* Contrast: text on the primary button. white. */
+    --color-primary-contrast: #ffffff;
+
+    /* secondary (indigo) */
+    /* Base: secondary accent fill, accent text and icons. indigo-600. */
+    --color-secondary: #4f46e5;
+    /* Strong: hover / pressed, text on secondary-soft. indigo-700. */
+    --color-secondary-strong: #4338ca;
+    /* Soft: secondary badge / highlight background. indigo-50. */
+    --color-secondary-soft: #eef2ff;
+    /* Line: border of a secondary soft badge. indigo-200. */
+    --color-secondary-line: #c7d2fe;
+    /* Contrast: text on the secondary fill. white. */
+    --color-secondary-contrast: #ffffff;
+
+    /* success (emerald) */
+    /* Base: success icon, "saved" text, success button fill. emerald-600. */
+    --color-success: #059669;
+    /* Strong: hover / pressed, text on success-soft. emerald-700. */
+    --color-success-strong: #047857;
+    /* Soft: success alert / badge background. emerald-50. */
+    --color-success-soft: #ecfdf5;
+    /* Line: border of a success alert / badge. emerald-200. */
+    --color-success-line: #a7f3d0;
+    /* Contrast: text on the success fill. white. Preserved as part of the complete
+       5-role intent contract (base, strong, soft, line, contrast) for solid buttons/badges. */
+    --color-success-contrast: #ffffff;
+
+    /* info (sky) */
+    /* Base: info icon and text, info button fill. sky-600. */
+    --color-info: #0284c7;
+    /* Strong: hover / pressed, text on info-soft. sky-700. */
+    --color-info-strong: #0369a1;
+    /* Soft: info alert / tip background. sky-50. */
+    --color-info-soft: #f0f9ff;
+    /* Line: border of an info alert. sky-200. */
+    --color-info-line: #bae6fd;
+    /* Contrast: text on the info fill. white. */
+    --color-info-contrast: #ffffff;
+
+    /* warning (amber) */
+    /* Base: warning icon and text, warning button fill. amber-600. */
+    --color-warning: #d97706;
+    /* Strong: hover / pressed, text on warning-soft. amber-700. */
+    --color-warning-strong: #b45309;
+    /* Soft: warning alert / banner background. amber-50. */
+    --color-warning-soft: #fffbeb;
+    /* Line: border of a warning alert. amber-200. */
+    --color-warning-line: #fde68a;
+    /* Contrast: text on the warning fill. Dark, because white on amber
+       fails WCAG AA contrast. stone-900. Preserved as part of the complete
+       5-role intent contract (base, strong, soft, line, contrast) for solid buttons/badges. */
+    --color-warning-contrast: #1c1917;
+
+    /* danger (rose) */
+    /* Base: delete button fill, error text and icons. rose-600. */
+    --color-danger: #e11d48;
+    /* Strong: hover / pressed, text on danger-soft. rose-700. */
+    --color-danger-strong: #be123c;
+    /* Soft: error alert / destructive badge background. rose-50. */
+    --color-danger-soft: #fff1f2;
+    /* Line: border of an error alert / badge. rose-200. */
+    --color-danger-line: #fecdd3;
+    /* Contrast: text on the danger fill. white. */
+    --color-danger-contrast: #ffffff;
+
+    /* neutral (slate)
+       Preserved as part of the complete 5-role intent contract (base, strong, soft,
+       line, contrast) for tags, chips, default badges, and muted controls without
+       hardcoding raw slate values. */
+    /* Base: plain filled button / badge, neutral icons. slate-600. */
+    --color-neutral: #475569;
+    /* Strong: hover / pressed, text on neutral-soft. slate-700. */
+    --color-neutral-strong: #334155;
+    /* Soft: tag / default badge background. slate-100. */
+    --color-neutral-soft: #f1f5f9;
+    /* Line: border of a tag / default badge. slate-200. */
+    --color-neutral-line: #e2e8f0;
+    /* Contrast: text on the neutral fill. white. */
+    --color-neutral-contrast: #ffffff;
+}
+
+
+/* ============================================================================
+   5. SPACING  (p-*, m-*, gap-*, space-x-*, space-y-*)
+   ----------------------------------------------------------------------------
+   Padding, margins and gaps. Degree scale, smallest to largest.
+
+   Based on  4px base grid (Material 3, Atlassian, IBM Carbon all use 4 / 8px).
+             Words follow Tailwind's own line-height scale
+             (leading-tight / snug / normal / relaxed / loose), so the order
+             is already familiar; micro, spacious and vast extend it at both ends.
+             Steps = the values actually used most in the current code.
+   Replaces  py-0.5 (51) | gap-1 (51), p-1 (27) | gap-2 (128), px-2 (42),
+             py-2 (36) | gap-3 (73), px-3 (32), p-3 (31) | gap-4 (50),
+             px-4 (42), p-4 (34) | p-6 (25) | p-8 (16) | py-12 / py-16 / py-20.
+             Half steps (gap-1.5, py-1.5, px-2.5) snap to the nearest step.
+   ============================================================================ */
+@theme static {
+    /* Micro, 2px: optical nudge - badge vertical padding, icon offset.
+       Replaces 0.5. */
+    --spacing-micro: 0.125rem;
+
+    /* Tight, 4px: almost touching - icon next to text, inside chips and
+       badges. Replaces 1 (and 1.5). */
+    --spacing-tight: 0.25rem;
+
+    /* Snug, 8px: close together - items in a row, list items, control
+       vertical padding. Replaces 2 (and 2.5). */
+    --spacing-snug: 0.5rem;
+
+    /* Normal, 12px: regular - control horizontal padding, small card padding,
+       between form fields. Replaces 3. */
+    --spacing-normal: 0.75rem;
+
+    /* Relaxed, 16px: free - panel padding, between groups of controls.
+       Replaces 4. */
+    --spacing-relaxed: 1rem;
+
+    /* Loose, 24px: between sections, page padding. Replaces 6. */
+    --spacing-loose: 1.5rem;
+
+    /* Spacious, 32px: large blocks, page sections. Replaces 8 / 10. */
+    --spacing-spacious: 2rem;
+
+    /* Vast, 64px: empty states and hero areas (vertical air around a message).
+       Replaces 12 / 16 / 20. */
+    --spacing-vast: 4rem;
+}
+
+
+/* ============================================================================
+   6. OBJECT SIZES  (h-control-md, size-icon-sm, w-sidebar, min-h-touch, ...)
+   ----------------------------------------------------------------------------
+   Fixed dimensions of specific objects. Named by object + sm / md / lg.
+   These live in the spacing namespace, so the same name works with
+   h-, w-, size-, min-h-, min-w-, ... (e.g. `h-control-md`, `size-icon-md`).
+
+   Based on  MUI `size` prop small / medium / large (Button, TextField, Icon),
+             8px grid for control heights (32 / 40 / 48),
+             Tailwind icon sizes size-4 / 5 / 6,
+             WCAG 2.5.5 and Apple HIG minimum target 44px.
+   Replaces  h-8 / h-10 / h-12, size-4 / size-5 / size-6 (w-4 h-4 pairs),
+             existing --header-h, --bottom-nav-h, --sidebar-w, --touch-min
+             and the min-h-touch / min-w-touch utilities in global.css.
+   ============================================================================ */
+@theme static {
+    /* Control xs, 28px: dense buttons and inputs - compact toolbars, table actions. */
+    --spacing-control-xs: 1.75rem;
+
+    /* Control sm, 32px: small buttons and inputs - toolbars, table rows,
+       dense filters. */
+    --spacing-control-sm: 2rem;
+
+    /* Control md, 40px: default height of buttons, inputs, selects. */
+    --spacing-control-md: 2.5rem;
+
+    /* Control lg, 48px: prominent actions - sign-in button, main CTA,
+       search field in a header. */
+    --spacing-control-lg: 3rem;
+
+    /* Icon sm, 16px: icons inside text, badges, small buttons. */
+    --spacing-icon-sm: 1rem;
+
+    /* Icon md, 20px: icons in regular buttons, list items, menus. */
+    --spacing-icon-md: 1.25rem;
+
+    /* Icon lg, 24px: icons in headers, nav bars, empty states. */
+    --spacing-icon-lg: 1.5rem;
+
+    /* Avatar sm, 24px: inline avatar in text, comments, compact lists. */
+    --spacing-avatar-sm: 1.5rem;
+
+    /* Avatar md, 32px: avatar in lists, header account button. */
+    --spacing-avatar-md: 2rem;
+
+    /* Avatar lg, 48px: profile card, item thumbnail in detail views. */
+    --spacing-avatar-lg: 3rem;
+
+    /* Cover sm, 112px: book / media card thumbnail. */
+    --spacing-cover-sm: 7rem;
+
+    /* Cover md, 144px: book / media card in detail view. */
+    --spacing-cover-md: 9rem;
+
+    /* Touch, 44px: minimum tap target on touch screens. Use as
+       `min-h-touch min-w-touch` on small interactive elements. */
+    --spacing-touch: 2.75rem;
+
+    /* Header, 56px: height of the app header (`h-header`, `pt-header`). */
+    --spacing-header: 3.5rem;
+
+    /* Bottom nav, 56px: height of the bottom navigation on phones. */
+    --spacing-bottom-nav: 3.5rem;
+
+    /* Sidebar, 288px: width of the side navigation (`w-sidebar`). */
+    --spacing-sidebar: 18rem;
+}
+
+
+/* ============================================================================
+   7. CONTAINER WIDTHS  (max-w-form, max-w-dialog-md, max-w-page, ...)
+   ----------------------------------------------------------------------------
+   Maximum widths of content blocks.
+   For a column of readable text use Tailwind's built-in `max-w-prose`
+   (65ch); no token needed.
+
+   Based on  MUI Dialog maxWidth xs / sm / md,
+             Bootstrap modal-sm / modal / modal-lg,
+             typographic line length 45-75 characters (Bringhurst) for prose.
+   Replaces  max-w-sm / max-w-md / max-w-lg / max-w-2xl / max-w-3xl /
+             max-w-7xl used for forms, dialogs and page content.
+   ============================================================================ */
+@theme static {
+    /* Form, 448px: single-column forms - sign-in, settings sections. */
+    --container-form: 28rem;
+
+    /* Dialog sm, 384px: confirmation and simple prompt dialogs. */
+    --container-dialog-sm: 24rem;
+
+    /* Dialog md, 512px: regular dialogs with a form. */
+    --container-dialog-md: 32rem;
+
+    /* Dialog lg, 768px: dialogs with rich content - previews, tables. */
+    --container-dialog-lg: 48rem;
+
+    /* Popup, 320px: menus, popovers, tooltips, truncated inline labels. */
+    --container-popup: 20rem;
+
+    /* Content, 1024px: single-column content pages - profile, publications,
+       settings. */
+    --container-content: 64rem;
+
+    /* Page, 1280px: content area of a page on wide screens. */
+    --container-page: 80rem;
+}
+
+
+/* ============================================================================
+   8. TYPOGRAPHY - TEXT STYLES  (text-caption, text-body, text-title, ...)
+   ----------------------------------------------------------------------------
+   One class = font size + line height (+ weight where the role needs it).
+   Smallest to largest. An explicit `font-*` or `leading-*` class still
+   overrides the bundled value. `micro` (10px) is below the Material scale and
+   exists for dense badges only.
+
+   Based on  Material 3 type scale roles: display / headline / title /
+             body / label; "caption" from Material 2 and Apple HIG.
+             Sizes and line heights = Tailwind text-xs ... text-2xl.
+   Replaces  text-xs (298), text-sm (131), text-base (81), text-lg (78),
+             text-xl (50), text-2xl (36) + font-medium / font-semibold
+             repeated next to them.
+   ============================================================================ */
+@theme static {
+    /* Micro, 10/14: tiny counters, uppercase tags, file-type badges.
+       Replaces text-[10px] / text-[11px]. */
+    --text-micro: 0.625rem;
+    --text-micro--line-height: 0.875rem;
+
+    /* Caption, 12/16: metadata, timestamps, badges, hints, helper text under
+       inputs. Replaces text-xs. */
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1rem;
+
+    /* Label, 14/20 medium: labels of buttons, tabs, form fields, menu items.
+       Replaces text-sm font-medium. */
+    --text-label: 0.875rem;
+    --text-label--line-height: 1.25rem;
+    --text-label--font-weight: 500;
+
+    /* Body, 14/20: default interface text. Replaces text-sm. */
+    --text-body: 0.875rem;
+    --text-body--line-height: 1.25rem;
+
+    /* Body lg, 16/24: larger running text - descriptions, reading content,
+       prominent paragraphs. Replaces text-base. */
+    --text-body-lg: 1rem;
+    --text-body-lg--line-height: 1.5rem;
+
+    /* Title, 18/28 semibold: title of a card, panel, dialog, section.
+       Replaces text-lg font-semibold (and text-xl in sections). */
+    --text-title: 1.125rem;
+    --text-title--line-height: 1.75rem;
+    --text-title--font-weight: 600;
+
+    /* Headline, 24/32 semibold: page heading. Replaces text-2xl font-semibold. */
+    --text-headline: 1.5rem;
+    --text-headline--line-height: 2rem;
+    --text-headline--font-weight: 600;
+
+    /* Display, 32/40 bold: large expressive text - sign-in screen, empty
+       states, hero numbers. Replaces text-3xl font-bold. */
+    --text-display: 2rem;
+    --text-display--line-height: 2.5rem;
+    --text-display--font-weight: 700;
+    --text-display--letter-spacing: -0.02em;
+}
+
+
+/* ============================================================================
+   9. TYPOGRAPHY - EMPHASIS  (font-regular, font-emphasis, font-strong)
+   ----------------------------------------------------------------------------
+   Weight inside running text. Same order as HTML: text < <em> < <strong>.
+
+   Based on  CSS font-weight 400 / 500 / 600 (normal / medium / semibold),
+             HTML <em> / <strong> importance levels.
+   Replaces  font-normal, font-medium, font-semibold.
+   ============================================================================ */
+@theme static {
+    /* Regular, 400: normal text. Replaces font-normal. */
+    --font-weight-regular: 400;
+
+    /* Emphasis, 500: light emphasis - active item, field values, inline
+       highlights. Replaces font-medium. */
+    --font-weight-emphasis: 500;
+
+    /* Strong, 600: strong emphasis - important values, inline headings.
+       Replaces font-semibold. */
+    --font-weight-strong: 600;
+}
+
+
+/* ============================================================================
+   10. TYPOGRAPHY - FAMILIES  (font-ui, font-prose, font-code)
+   ----------------------------------------------------------------------------
+   Based on  Tailwind default stacks font-sans / font-serif / font-mono,
+             named by purpose instead of by letterform.
+   Replaces  font-sans, font-serif, font-mono.
+   ============================================================================ */
+@theme static {
+    /* UI: interface text - controls, navigation, lists. */
+    --font-ui: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    /* Prose: long-form reading content - book text, articles. */
+    --font-prose: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+
+    /* Code: code, file paths, hashes, technical values. */
+    --font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+
+/* ============================================================================
+   11. LINE THICKNESS  (border-thin, border-t-thick, divide-y-thin,
+                        ring-thick, outline-thick)
+   ----------------------------------------------------------------------------
+   Width of borders, dividers, rings and outlines. Degree scale.
+   Tailwind keeps border, ring and outline widths in separate namespaces,
+   so the same scale is declared for each of them.
+
+   Based on  GitHub Primer borderWidth thin / thick / thicker (1 / 2 / 4px).
+   Replaces  border (1px), border-2, ring-1 / ring-2, outline-2,
+             border-b-2 / border-l-4 on tab and nav indicators.
+   ============================================================================ */
+@theme static {
+    /* Thin, 1px: regular border and divider. */
+    --border-width-thin: 1px;
+
+    /* Thick, 2px: emphasized - selected card, active input. */
+    --border-width-thick: 2px;
+
+    /* Heavy, 3px: indicators - active tab underline, current nav item bar. */
+    --border-width-heavy: 3px;
+
+    /* Ring thin, 1px: subtle ring around avatars and thumbnails. */
+    --ring-width-thin: 1px;
+
+    /* Ring thick, 2px: selection ring around a card or image. */
+    --ring-width-thick: 2px;
+
+    /* Ring heavy, 3px: strong highlight ring (drop target, current item). */
+    --ring-width-heavy: 3px;
+
+    /* Outline thin, 1px: light outline on dense controls. */
+    --outline-width-thin: 1px;
+
+    /* Outline thick, 2px: keyboard focus outline (used by `focus-ring`). */
+    --outline-width-thick: 2px;
+
+    /* Outline heavy, 3px: high-visibility focus (accessibility mode). */
+    --outline-width-heavy: 3px;
+}
+
+
+/* ============================================================================
+   12. CORNERS  (rounded-control, rounded-panel, rounded-popup, rounded-dialog)
+   ----------------------------------------------------------------------------
+   Corner radius per object. For fully round shapes (pills, avatars,
+   toggles) use Tailwind's built-in `rounded-full`.
+
+   Based on  Material 3 shape tokens, which assign a radius per component
+             (small for controls, medium for cards, large / extra-large for
+             menus and dialogs). Values = what the current code uses.
+   Replaces  rounded-lg (114), rounded (89), rounded-xl (47),
+             rounded-2xl (24), rounded-md.
+   ============================================================================ */
+@theme static {
+    /* Control, 8px: buttons, inputs, chips, small badges. Replaces rounded-lg. */
+    --radius-control: 0.5rem;
+
+    /* Panel, 12px: cards, panels, inset boxes, alerts. Replaces rounded-xl. */
+    --radius-panel: 0.75rem;
+
+    /* Popup, 12px: menus, popovers, dropdowns. Replaces rounded-xl. */
+    --radius-popup: 0.75rem;
+
+    /* Dialog, 16px: modal dialogs and bottom sheets. Replaces rounded-2xl. */
+    --radius-dialog: 1rem;
+}
+
+
+/* ============================================================================
+   13. ELEVATION  (shadow-panel, shadow-popup, shadow-dialog)
+   ----------------------------------------------------------------------------
+   How high an object floats above the page. Flat = built-in `shadow-none`.
+
+   Based on  Material 3 elevation levels (level 1 cards, level 2 menus,
+             level 3 dialogs), Atlassian elevation.shadow raised / overflow /
+             overlay. Values = Tailwind shadow-sm / shadow-lg / shadow-xl.
+   Replaces  shadow-sm, shadow, shadow-lg, shadow-xl, shadow-2xl.
+   ============================================================================ */
+@theme static {
+    /* Panel: card resting on the page. Replaces shadow-sm / shadow. */
+    --shadow-panel: 0 1px 2px 0 rgb(15 23 42 / 0.06), 0 1px 3px 0 rgb(15 23 42 / 0.04);
+
+    /* Popup: menu / popover above the content. Replaces shadow-lg. */
+    --shadow-popup: 0 4px 6px -1px rgb(15 23 42 / 0.10), 0 10px 15px -3px rgb(15 23 42 / 0.10);
+
+    /* Dialog: modal dialog, the highest. Replaces shadow-xl / shadow-2xl. */
+    --shadow-dialog: 0 20px 25px -5px rgb(15 23 42 / 0.15), 0 8px 10px -6px rgb(15 23 42 / 0.10);
+}
+
+
+/* ============================================================================
+   14. LAYERS  (z-sticky, z-header, z-drawer, z-dialog, z-popup, z-toast,
+                z-tooltip)
+   ----------------------------------------------------------------------------
+   Stacking order, bottom to top.
+
+   Based on  MUI theme.zIndex: appBar 1100, drawer 1200, modal 1300,
+             snackbar 1400, tooltip 1500. Same values, so Tailwind-styled and
+             MUI overlays never cover each other wrongly.
+   Replaces  z-10, z-20, z-30, z-40, z-50, z-[9999] and similar.
+   ============================================================================ */
+@theme static {
+    /* Sticky, 10: sticky table headers, sticky list section titles. */
+    --z-index-sticky: 10;
+
+    /* Header, 1100: app header and bottom navigation (MUI appBar). */
+    --z-index-header: 1100;
+
+    /* Drawer, 1200: side drawer / navigation sheet (MUI drawer). */
+    --z-index-drawer: 1200;
+
+    /* Dialog, 1300: modal dialogs and their scrim (MUI modal). */
+    --z-index-dialog: 1300;
+
+    /* Popup, 1350: menus and popovers. Above dialogs, because they also
+       open from inside them. */
+    --z-index-popup: 1350;
+
+    /* Toast, 1400: notifications (MUI snackbar). */
+    --z-index-toast: 1400;
+
+    /* Tooltip, 1500: tooltips, always on top (MUI tooltip). */
+    --z-index-tooltip: 1500;
+}
+
+
+/* ============================================================================
+   15. MOTION  (duration-short, duration-medium, duration-long,
+                ease-standard, ease-enter, ease-exit)
+   ----------------------------------------------------------------------------
+   Based on  Material 3 motion: duration groups short / medium / long,
+             easing standard / standard-decelerate / standard-accelerate.
+   Replaces  duration-100 / 150 / 200 / 300, ease-in / ease-out / ease-in-out.
+   ============================================================================ */
+@theme static {
+    /* Short, 120ms: hover, press, color and opacity changes. */
+    --transition-duration-short: 120ms;
+
+    /* Medium, 200ms: expand / collapse, small panels and menus appearing. */
+    --transition-duration-medium: 200ms;
+
+    /* Long, 300ms: dialogs, drawers, page-level transitions. */
+    --transition-duration-long: 300ms;
+
+    /* Standard: movement within the screen - resize, reposition.
+       M3 standard. */
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+    /* Enter: element appearing - fast start, soft landing.
+       M3 standard-decelerate. */
+    --ease-enter: cubic-bezier(0, 0, 0, 1);
+
+    /* Exit: element leaving - soft start, fast exit.
+       M3 standard-accelerate. */
+    --ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+    /* Default transition values point at theme motion tokens */
+    --default-transition-duration: var(--transition-duration-short);
+    --default-transition-timing-function: var(--ease-standard);
+}
+
+
+/* ============================================================================
+   16. STATE OPACITY  (opacity-disabled)
+   ----------------------------------------------------------------------------
+   Based on  Material 3 disabled content opacity 38%.
+   Replaces  opacity-40, opacity-50 on disabled elements.
+   ============================================================================ */
+@theme static {
+    /* Disabled: controls and content that cannot be interacted with. */
+    --opacity-disabled: 0.38;
+
+    /* Muted: dimmed but still active content - secondary icons, inactive
+       items, hover-revealed actions at rest. Replaces opacity-60 ... 80. */
+    --opacity-muted: 0.7;
+}
+
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+
+/* Focus ring: keyboard focus indicator, accessible on any surface.
+   Use with the variant: `focus-visible:focus-ring`.
+   Based on WCAG 2.4.7 (visible focus), GitHub Primer focus outline. */
+@utility focus-ring {
+    outline: var(--outline-width-thick) solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+
+/* ============================================================================
+   VARIANTS - LAYOUT TIERS  (compact:, medium:, expanded:)
+   ----------------------------------------------------------------------------
+   Match the `data-tier` attribute set by the app shell.
+   Based on Material 3 window size classes compact / medium / expanded.
+   Most tier differences should come from the token overrides below; use
+   these variants only for structural changes (`compact:hidden`,
+   `expanded:grid-cols-3`).
+   ============================================================================ */
+
+/* Dark: color scheme variant, active under a `.dark` ancestor (the class is
+   set on <html>). Rarely needed: tokens already switch in `.dark`. */
+@custom-variant dark (&:is(.dark *));
+
+/* Compact: phones, narrow windows. */
+@custom-variant compact (&:where([data-tier="compact"], [data-tier="compact"] *));
+
+/* Medium: tablets, half-screen windows. */
+@custom-variant medium (&:where([data-tier="medium"], [data-tier="medium"] *));
+
+/* Expanded: desktops, wide windows. */
+@custom-variant expanded (&:where([data-tier="expanded"], [data-tier="expanded"] *));
+
+
+/* ============================================================================
+   OVERRIDES - DARK SCHEME
+   ----------------------------------------------------------------------------
+   Only colors and shadows change; same meaning as the light values above.
+   Placed in `@layer base` so they win over the defaults Tailwind emits in
+   `@layer theme`.
+   Values: one step brighter base colors (500 instead of 600) to keep
+   contrast on dark surfaces; soft / line colors are translucent so they
+   tint any dark surface instead of looking like pale patches.
+   ============================================================================ */
+@layer base {
+    /* Visible keyboard focus indicator across the application.
+       Based on WCAG 2.4.7 (visible focus). */
+    :focus-visible {
+        outline: var(--outline-width-thick) solid var(--color-focus);
+        outline-offset: 2px;
+    }
+
+    /* Respect prefers-reduced-motion by collapsing duration tokens to 0ms */
+    @media (prefers-reduced-motion: reduce) {
+        :root {
+            --transition-duration-short: 0ms;
+            --transition-duration-medium: 0ms;
+            --transition-duration-long: 0ms;
+            --default-transition-duration: 0ms;
+        }
+    }
+
+    .dark {
+        /* surfaces: page slate-950, panel slate-900, raised layers slate-800 */
+        --color-surface-page: #020617;
+        --color-surface-panel: #0f172a;
+        --color-surface-inset: #1e293b;
+        --color-surface-popup: #1e293b;
+        --color-surface-dialog: #1e293b;
+        --color-surface-hover: rgb(248 250 252 / 0.06);
+        --color-surface-selected: rgb(59 130 246 / 0.16);
+        --color-surface-inverse: #f1f5f9;
+        --color-surface-scrim: rgb(2 6 23 / 0.7);
+
+        /* foreground: slate-100 / 400 / 500 / 600, inverse slate-900 */
+        --color-fg-default: #f1f5f9;
+        --color-fg-muted: #94a3b8;
+        --color-fg-faint: #64748b;
+        --color-fg-disabled: #475569;
+        --color-fg-inverse: #0f172a;
+
+        /* lines: slate-800 / translucent slate-800 / slate-700, focus blue-400 */
+        --color-line-default: #1e293b;
+        --color-line-muted: rgb(30 41 59 / 0.5);
+        --color-line-strong: #334155;
+        --color-focus: #60a5fa;
+
+        /* intents: base 500, strong 400, soft 15%, line 35% */
+        --color-primary: #3b82f6;
+        --color-primary-strong: #60a5fa;
+        --color-primary-soft: rgb(59 130 246 / 0.15);
+        --color-primary-line: rgb(59 130 246 / 0.35);
+
+        --color-secondary: #6366f1;
+        --color-secondary-strong: #818cf8;
+        --color-secondary-soft: rgb(99 102 241 / 0.15);
+        --color-secondary-line: rgb(99 102 241 / 0.35);
+
+        --color-success: #10b981;
+        --color-success-strong: #34d399;
+        --color-success-soft: rgb(16 185 129 / 0.15);
+        --color-success-line: rgb(16 185 129 / 0.35);
+
+        --color-info: #0ea5e9;
+        --color-info-strong: #38bdf8;
+        --color-info-soft: rgb(14 165 233 / 0.15);
+        --color-info-line: rgb(14 165 233 / 0.35);
+
+        --color-warning: #f59e0b;
+        --color-warning-strong: #fbbf24;
+        --color-warning-soft: rgb(245 158 11 / 0.15);
+        --color-warning-line: rgb(245 158 11 / 0.35);
+
+        --color-danger: #f43f5e;
+        --color-danger-strong: #fb7185;
+        --color-danger-soft: rgb(244 63 94 / 0.15);
+        --color-danger-line: rgb(244 63 94 / 0.35);
+
+        --color-neutral: #64748b;
+        --color-neutral-strong: #94a3b8;
+        --color-neutral-soft: rgb(148 163 184 / 0.12);
+        --color-neutral-line: rgb(148 163 184 / 0.3);
+
+        /* shadows are barely visible on dark surfaces; make them deeper */
+        --shadow-panel: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+        --shadow-popup: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+        --shadow-dialog: 0 20px 25px -5px rgb(0 0 0 / 0.6);
+    }
+
+
+    /* ========================================================================
+       OVERRIDES - COMPACT TIER (phones)
+       ------------------------------------------------------------------------
+       Less air between sections, controls grow to the touch target size.
+       Same classes in markup, different values.
+       Based on Material 3 compact window guidance and the 44px touch target.
+       ======================================================================== */
+    [data-tier="compact"] {
+        /* sections closer together on small screens: 24 -> 16, 32 -> 24 */
+        --spacing-loose: 1rem;
+        --spacing-spacious: 1.5rem;
+
+        /* controls reach the touch target: 28 -> 32, 32 -> 36, 40 -> 44 */
+        --spacing-control-xs: 2rem;
+        --spacing-control-sm: 2.25rem;
+        --spacing-control-md: 2.75rem;
+        --spacing-control-lg: 3rem;
+    }
+}
+
+
+/* ============================================================================
+   STRICT MODE (enable after migration)
+   ----------------------------------------------------------------------------
+   Removes Tailwind's default palette, so `text-slate-500` / `bg-rose-50`
+   stop compiling and only the tokens above are available.
+   Put it as the FIRST line of the first color @theme block:
+
+     @theme static {
+         --color-*: initial;
+         --color-white: #ffffff;
+         --color-black: #000000;
+         --color-transparent: transparent;
+         ...tokens...
+     }
+
+   Numeric spacing (`p-4`) can stay: it is useful for one-off layout math.
+   ============================================================================ */

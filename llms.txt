@@ -1,0 +1,13 @@
+# @actdim/ui-core
+
+> Shared UI foundation, theme system, design tokens, and Dynstruct component conventions for Actdim applications.
+
+## Documentation Links
+- [README.md](README.md): Overview, quick installation, and full skill list.
+- [AGENTS.md](AGENTS.md): Active ALONG-PROTOCOL conventions and instructions.
+- [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
+- [docs/topic--adaptive-layout.md](docs/topic--adaptive-layout.md): Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService).
+- [docs/topic--adaptive-overlays.md](docs/topic--adaptive-overlays.md): Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu).
+- [docs/topic--developer-guide.md](docs/topic--developer-guide.md): @actdim/ui-core Developer & Consumer Integration Guide.
+- [docs/topic--frontend-conventions.md](docs/topic--frontend-conventions.md): Frontend Coding Conventions (Dynstruct + MsgMesh).
+- [docs/topic--theme-tokens.md](docs/topic--theme-tokens.md): Theme Tokens and the tw() Class Helper.

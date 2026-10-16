@@ -1,0 +1,25 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "composite": true,
+        "noEmit": true,
+        "declaration": true,
+        "emitDeclarationOnly": true,
+        "declarationMap": true,
+        "declarationDir": "./dist",
+        "outDir": "./dist",
+        "sourceMap": false,
+        "inlineSources": false,
+        "inlineSourceMap": false,
+        "types": ["node", "vite/client"]
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "packageConfig.ts",
+        "package.json",
+        "postcss.ts",
+        "vite.config.ts"
+    ],
+    "exclude": ["dist", "node_modules", "tests"]
+}

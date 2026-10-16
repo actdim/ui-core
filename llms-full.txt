@@ -1,0 +1,788 @@
+# @actdim/ui-core - Full Documentation Context
+
+> Shared UI foundation, theme system, design tokens, adaptive layout, and Dynstruct component conventions for Actdim applications.
+
+---
+
+## Document: README.md (Overview)
+
+# @actdim/ui-core
+
+Shared UI foundation, theme system, design tokens, adaptive layout, and Dynstruct component conventions for Actdim applications.
+
+## Overview
+- **Theme Engine**: Semantic CSS design tokens, PostCSS build-time generator, runtime variable overrides (`themeRuntime`), and compile-time class validator (`tw()`).
+- **Adaptive Layout**: Screen tiers (`compact`, `medium`, `expanded`), orientation detection, safe-area insets, and prioritized hardware Back-Stack navigation.
+- **Adaptive Overlays**: `AdaptiveDialog`, `ActionSheet`, and `AdaptiveMenu` with unified `onClose` contracts and two-way bound `open` states.
+- **AI Guidelines**: Comprehensive developer and AI agent conventions for Dynstruct + MsgMesh development.
+
+## Documentation
+- [Knowledge Base Index](docs/INDEX.md)
+- [Frontend Coding Conventions](docs/topic--frontend-conventions.md)
+- [Theme Tokens & tw() Helper](docs/topic--theme-tokens.md)
+- [Adaptive Overlays Guide](docs/topic--adaptive-overlays.md)
+- [Adaptive Layout & Back-Stack](docs/topic--adaptive-layout.md)
+
+---
+
+## Document: AGENTS.md (Agent Conventions & Protocol)
+
+<!-- BEGIN ALONG-PROTOCOL root (managed by along-init - do not edit by hand) -->
+# ALONG-PROTOCOL v4.4.15
+
+This repo carries its own agent context, provider-agnostically. Follow it every session, whatever tool you are.
+
+## Scope, Precedence & Subproject Placement
+- **Nearest Context Boundary**: Any folder may carry its own `AGENTS.md` + `.along/`; use the NEAREST ones for the area you're working in. On conflict, the more specific wins.
+- **Subproject Localization** [gate: subproject-boundary]: In submodules, nested repos or symlinked folders: all entities (issues, sessions, ADRs, history) MUST be created in the NEAREST `.along/`. Agents are STRICTLY FORBIDDEN from dumping subproject changes into the workspace root `.along/`.
+- **Multi-Subproject Work** [gate: subproject-boundary]: A change spanning subprojects needs an issue in each touched `.along/`, or a root umbrella issue whose child issues there carry `parent: <umbrella key>`. Edits under a subproject `.along/` are checked by path.
+- **Subproject Boundary**: only a nested `.git` or a user-run `along init` makes a subproject; never init a manifest folder.
+- **Precedence**: Nearest `.along/` > higher-level `.along/` > global config (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`, `~/.gemini/config/GEMINI.md`).
+
+## At session start - read these yourself (they are NOT auto-loaded)
+Use the NEAREST `.along/` for the area you're working in (fall back to a higher-level one if the folder has none):
+1. `AGENTS.md` (nearest) - conventions to follow.
+2. `.along/ISSUES.md` - active issue board (or query `/along-kb-search`).
+3. `.along/CONSTRAINTS.md` - active architectural constraints (or full log in `.along/DECISIONS.md` / `.along/DECISIONS/`).
+4. Active Issue file `.along/ISSUES/<type>--<slug>.md` for your task.
+Also, when relevant: `.along/VISION.md`, `.along/GLOSSARY.md`. These reflect the state WHEN WRITTEN - verify any named file/API/flag against the real code first.
+
+## Multi-Agent & Multi-Branch Concurrency
+- **Zero-Manual-Merge Rule** [gate: projection-protection]: On merge conflicts in derived projections (`ISSUES.md`, `INDEX.md`, `DECISIONS.md`), accept either side and run `/along-issue-sync`, `/along-kb-sync`, or `/along-decision-sync` to recompile. `along git setup` registers merge drivers that do this automatically; afterwards run `along git sync`.
+- **Append-Only Merge Driver**: `.along/HISTORY.md` and legacy monolithic `.along/DECISIONS.md` are append-only. Configure `.gitattributes` with `merge=union`. Modular ADR files in `.along/DECISIONS/` are isolated per-file to eliminate merge collisions.
+- **Untracked Exports** [gate: untracked-exports]: `.along/dashboard.html`, `.along/DASHBOARD.md` and per-machine `.along/diagnostics/` stay out of Git.
+- **Context Isolation**: Context is localized to the target issue file, session-scoped blackboard (`.along/.session/<slug>/`), and completed session logs.
+- **Parallel Closeout**: `along session list`; on the user's yes `along plan approve --closeout --ready`, then `along session close --ready`.
+
+## Mandatory Issue Anchoring
+- **No Code Without Issue** [gate: require-active-issue]: Before modifying source code, agents MUST identify or create an issue in `.along/ISSUES/<type>--<slug>.md` and set `status: in-progress`.
+- **Session Binding & Plan Approval** [gate: require-plan-approval]: `along start <slug>` binds THIS agent session to the issue; parallel sessions keep their own bindings. Source edits unlock after the user approves the plan (`EnterPlanMode` -> `ExitPlanMode`; outside plan mode, write the plan to a file and run `along plan approve --plan-file <path>` after the user's explicit yes). `along plan status` shows the binding.
+- **Exemptions**: Read-only Q&A and 1-line micro-edits (typo fixes, comments) do not require issues.
+- **Commit Binding** [gate: commit-issue-binding]: Every commit via `/along-commit` MUST bind to the active issue slug.
+- **No AI Co-Authors** [gate: commit-no-ai-coauthor]: Commit messages MUST NOT carry `Co-Authored-By:` trailers naming an AI agent (GitHub lists the vendor as a contributor). `along hook install` turns runtime attribution off; opt out via `.along/config.json` `commits.allow_ai_coauthor: true`.
+
+## Entity Ecosystem
+- **Entity types**: Issues (`feat`, `bug`, `debt`, `task`, `docs`), Decisions (ADRs), Milestones, Risks, Spikes, Checklists, Sessions. Full YAML schemas: `docs/topic--domain-model.md`.
+- **Canonical keys**: `<type>--<slug>` (e.g. `feat--token-refresh`). Reference by key, NEVER by file path.
+- **ADRs**: Modular records in `.along/DECISIONS/ADR-YYYY-MM-DD--<slug>.md` (with legacy fallback to monolithic `DECISIONS.md`). Never edit past entries - mark superseded. Recompile projections (`.along/DECISIONS.md` board and `.along/CONSTRAINTS.md`) via `/along-decision-sync` or `along decision sync`.
+- **Issue lifecycle** [gate: issue-lifecycle]: Close with `along issue done <slug>` (`status: done`, `completed`, moved to `.along/ISSUES/done/`).
+- **Entity references** [gate: entity-reference-integrity] [gate: entity-deletion-protection]: Never delete an entity other entities reference; use `along issue rename` / `along issue supersede`.
+- **Auto-entity creation**: Agents MUST automatically detect user intent (build/fix/refactor -> Issue, blocked/rate-limit -> Risk, compare/benchmark -> Spike, release/sprint -> Milestone) and create entities without prompting the user.
+
+## Knowledge Base & Documentation
+- **Stable Entry Point** [gate: stable-entry-point]: `README.md` and `docs/` never link into `.along/`; route through `docs/INDEX.md` or `docs/topic--<slug>.md`.
+- **Portable Links** [gate: portable-links]: Relative Markdown links only.
+- **Fact Grounding**: Agents MUST extract facts from actual code, `README.md`, `docs/`, and `package.json`. Generic LLM placeholders are strictly prohibited.
+- **Fast Retrieval** [gate: fast-retrieval]: Agents MUST query `/along-kb-search` before reading whole documentation files.
+- **Doc Blast Radius**: After non-trivial code changes, agents MUST map affected symbols to `docs/topic--*.md` articles and update them before completing the task.
+- **Manual Document Lock** [gate: doc-manual-lock]: Documents marked with `write_policy: manual` (or `locked: true`) are protected from automated agent modification during blast radius sweeps. Modifications require an explicit documentation issue (`docs--<slug>`).
+- **Managed Rule Packs** [gate: rule-pack-protection]: Never edit `.along/rules/**/*.md`; `along rules attach` owns them. Project guidelines go to `docs/topic--<slug>.md` or "Project specifics"; revert with `along rules restore`. `.along/rules/gates.yaml` and `.along/scripts/` stay repo-owned.
+- **Documentation Routing Tree** [gate: doc-routing-compliance]:
+  - Architectural choice / trade-off -> `.along/DECISIONS/` (ADR)
+  - Public overview / pitch / landing page -> `README.md`
+  - Technical interface contract / CLI spec -> `docs/topic--<slug>.md` (`type: reference`)
+  - Conceptual explanation / comparison / philosophy -> `docs/topic--<slug>.md` (`type: explanation`, `write_policy: manual`)
+  - Procedural walkthrough / runbook -> `docs/topic--<slug>.md` (`type: guide`)
+
+## While working
+- **Decisions**: Create new ADRs via `/along-decision-sync` or `along decision create <slug> --title "..."`. Add terms to `.along/GLOSSARY.md`.
+- **Token hygiene**: Use quiet flags (`pytest -q`, `dotnet test -v q`), filter outputs, inspect targeted line ranges.
+- **Lifecycle hooks first**: Agents MUST use `/along-test`, `/along-build`, `/along-dev` (or `.along/scripts/*.py`) before raw shell commands.
+- **Post-change review**: Agents MUST inspect diffs and evaluate blast radius via `along graph-impact` (or static search fallback). Silent skips are forbidden.
+
+## Stage & Session Completion Checklist
+When a stage or session completes, agents MUST execute in this order:
+1. [ ] **Tests** [gate: test_before_stop]: Run via `/along-test` with quiet flags. Zero failures.
+2. [ ] **File Integrity**: `git status -u` - all new/modified files non-zero size, no empty placeholders.
+3. [ ] **Code Review**: Inspect diff for side effects, verify REQ-N coverage, evaluate blast radius via `along graph-impact` (or static search), verify architectural decision compliance.
+4. [ ] **Entity Reconciliation**: Close issues (`done` + move to `done/`), update milestones, resolve risks, conclude spikes.
+5. [ ] **Doc Blast Radius**: Update affected `docs/topic--*.md`, `README.md` and Project specifics; add new terms to `.along/GLOSSARY.md`; touch `.along/VISION.md` only if scope/roadmap changed; run `/along-kb-sync`.
+6. [ ] **Session Log & Wrap** [gate: wrap_before_stop]: `along wrap <slug> --summary "<summary>" (--decisions <ADR...> | --no-decisions)` writes `.along/SESSIONS/<YYYY>/<date>--<slug>.md` with the blackboard record, compiles projections, and appends to `.along/HISTORY.md` (provide `--summary` or let it fallback to issue title).
+7. [ ] **Projections** [gate: projection_sync_before_stop]: Run `/along-issue-sync` and `/along-decision-sync`.
+8. [ ] **HISTORY**: Verify line in `.along/HISTORY.md` (appended automatically by `along wrap`; update via `along history append <slug> "..."` if needed).
+9. [ ] **Compaction**: Advise user to run `/compact`.
+
+## Rules
+- **Contract-First Lifecycle**:
+  - Agents MUST execute `.along/scripts/<action>.py` or `/along-test`, `/along-build`, `/along-dev` before raw shell commands.
+  - When `.along/scripts/` is missing, `along test`/`along build` auto-detects and synthesizes hooks.
+  - In submodules, execute the hook from that subproject's own `.along/scripts/`.
+- **Environment Isolation**:
+  - Agents MUST NOT install system-wide or global packages when a script fails. Fix the architecture (missing `bootstrap.ensure_deps()`, incorrect `uv` wrapper), not the environment.
+- **Workspace Containment** [gate: workspace-containment]: Read and write only inside the workspace. Writes elsewhere are limited to the temp dir and runtime artifact dirs. Other repos need `allowed_roots` (`.along/rules/gates.yaml`, issue frontmatter, `along start --allow-root`). Never touch credential stores (`~/.ssh`, `~/.aws`).
+- **Runtimes Without Along Hooks** (Claude Cowork, Cursor, OpenCode, plain shells): gates are advisory there. Agents MUST self-apply every gate-tagged rule and use the `along` CLI for tests, commits, entity changes, and wrap instead of raw tools. `along doctor` reports the enforcement level.
+- **File Modification & Anti-Deletion**:
+  - Never delete, truncate, or overwrite existing documentation, comments, or code unless explicitly instructed.
+  - After batch edits or migrations, agents MUST run `git diff --stat` and inspect unexpected size reductions.
+  - No stubs or skeletons in place of populated code [gate: anti_stub_injection].
+  - Anchor edits on minimal unique chunks. Restore unintended deletions immediately.
+- **Clean ASCII** [gate: typography]: ASCII punctuation only (no typographic dashes, quotes, ellipsis, bullets, NBSP/zero-width chars or BOM); `along sanitize --write` fixes them.
+- **Markdown** [gate: code-fence-language]: Every code fence names a language.
+- **Bypass Is The User's Call**: `-n`, `--force-reason`, `scratch fallback` need `--reason` and the user's reply after the failure; each bypass is recorded (`along gates stats`).
+- **File Content Via Tools Only** [gate: cli_safety]: Create/edit files with the agent's file tools. NEVER carry content in heredocs, `python -c`, or inline shell. Write scripts to a file first.
+- **No Ad-Hoc Shell Code Probing**: Agents must never use `python -c` or inline shell commands to probe internal module symbols or inspect functions. Internal engine packages (`alongkit`, `scripts`) are not installed into the global Python environment, and ad-hoc shell probing produces confusing error traces instead of actionable information. Prescribed inspection tools: static file tools (`view_file`, `grep_search`), AST tools (`along graph-*`), official CLI subcommands (`along <command> --help`), or dedicated hermetic tests in `tests/`.
+- **Verify Written Files**: After writing/patching, confirm parsing (`python -m compileall -q`, `bash -n`, etc.) before moving on.
+- **Hermetic Tests**: Tests MUST target throwaway fixtures (`tempfile.mkdtemp()`), never the live repository. Read-only access to live state is allowed. Keep a meta-test that verifies `git status --porcelain -u` stays clean.
+- **Inquiry Read-Only Invariance (Zero-Mutation Rule on Questions)** [gate: require-plan-approval]: On interrogative prompts ("is X done?", "why did Y fail?"), write/modify tools are STRICTLY PROHIBITED. Return a read-only audit report and ask for confirmation before modifying anything.
+- **Mandatory Adaptive Complexity Escalation & Execution Mode Routing**: When scope touches > 3 files, crosses subsystems, or refactors core engines: single-agent execution is forbidden - route to `along-team`. Plans MUST declare `Execution Mode: Direct` or `Role-Based`. Role-based blackboards (`along scratch init`) are held to the step loop [gate: team-step-active] [gate: team-reviews-before-stop]; dropping it needs `along scratch fallback <slug> --reason "..."`.
+- Windows-safe filenames [gate: windows-safe-filenames]: dates `YYYY-MM-DD`, date first.
+- Keep `ISSUES.md` compact: `along context-budget --check` enforces the limit.
+- Never write secrets into tracked files [gate: no-tracked-secrets].
+<!-- END ALONG-PROTOCOL -->
+
+## Project specifics
+
+<!-- BEGIN ALONG-RULES -->
+See the following engineering guidelines:
+- `[languages/typescript.md](.along/rules/languages/typescript.md)`
+- `[platforms/web.md](.along/rules/platforms/web.md)`
+<!-- END ALONG-RULES -->
+
+- **Project**: `@actdim/ui-core` - Shared UI foundation, design tokens, theme runtime, adaptive layout, and overlay components for Actdim applications.
+- **Dynstruct**: Component model for all UI elements with strict prop-less JSX in `view`.
+- **MsgMesh**: Typed event bus for cross-component coordination, theme changes, and layout notifications.
+- **Frontend Invariants**:
+  - Multi-line `{ ... }` blocks for all control flow; `type` only - no `interface`, no `class`.
+  - Nested dynstruct components go into `def.children`, rendered as `<c.children.Name />` without props in `view`.
+  - No MobX in application code.
+  - Reactive bindings: `bindProp` first, `bind(() => expr)` read-only, `bind(get, set)` for custom transformations.
+  - Styling: Tailwind v4 with semantic design tokens via `className={tw('...')}`, zero hardcoded color literals.
+  - MUI Theme Overrides: Forbidden in application/feature code. MUI `styleOverrides` exist exclusively in `@actdim/ui-core/theme/muiTheme.ts` as infrastructure bridges mapping MUI portal internals to semantic design tokens (`themeVar`).
+
+---
+
+## Document: docs/topic--adaptive-layout.md (Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService))
+
+# Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService)
+
+`@actdim/ui-core/layout` provides responsive screen tier classification, pointer detection, safe area inset propagation, and prioritized hardware/gesture Back-Stack management for Actdim applications.
+
+---
+
+## 1. Screen Tiers & Viewport Boundaries
+
+The layout engine categorizes viewports into three semantic tiers, aligned with Tailwind v4 thresholds and Material UI breakpoints:
+
+| Tier | Viewport Width | Description & UI Expectations |
+| --- | --- | --- |
+| `compact` | `< 768px` (under md) | Phone layout: single-column views, bottom navigation bar, full-screen dialogs, bottom sheets (`ActionSheet`). |
+| `medium` | `768px - 1023px` (md to lg) | Tablet / foldable layout: compact multi-pane layouts, floating dialogs, side rails. |
+| `expanded` | `>= 1024px` (lg and above) | Desktop layout: persistent sidebars, wide content containers, floating centered dialogs. |
+
+### DOM Attributes and CSS Hooks
+
+`LayoutService` automatically synchronizes the active layout with `document.documentElement` attributes:
+- `data-tier="compact" | "medium" | "expanded"`: Enables tier-targeted CSS rules and Tailwind variant hooks (`compact:hidden`, `expanded:flex`).
+- `data-pointer="coarse" | "fine"`: Reflects primary input capability (`(pointer: coarse)` vs `(pointer: fine)`). Used to enforce 44px minimum touch targets on mobile devices.
+
+---
+
+## 2. Safe Area Insets & CSS Custom Properties
+
+`applySafeAreaToCssVariables` updates CSS custom properties on `:root` to ensure UI elements do not collide with notches, home indicator bars, or system status bars:
+
+- `--safe-top`: Safe area inset top in pixels.
+- `--safe-bottom`: Safe area inset bottom in pixels.
+- `--safe-left`: Safe area inset left in pixels.
+- `--safe-right`: Safe area inset right in pixels.
+- `--toast-bottom-offset`: Dynamically computed bottom offset for toasts and floating action buttons (e.g. above bottom navigation on `compact` tier).
+
+### Utility Classes
+
+Applications use standard CSS utility classes configured in `global.css`:
+- `pt-safe`: `padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px))`
+- `pb-safe`: `padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px))`
+
+---
+
+## 3. LayoutService Architecture
+
+`LayoutService` is a Dynstruct service managing viewport resizing, orientation, and pointer detection:
+
+### Public API
+
+- `getCurrentLayout()`: Synchronously returns the cached `LayoutInfo` `{ tier, pointer, orientation, safeArea }`.
+- `resolveCurrentLayout()`: Evaluates `window.innerWidth`, media queries, and platform safe area insets to produce fresh `LayoutInfo`.
+- `applyLayoutAttributesToHtml(layout)`: Updates `data-tier` and `data-pointer` on `document.documentElement`.
+- `applySafeAreaToCssVariables(insets)`: Injects `--safe-*` variables into `:root`.
+- `initLayoutService(msgBus)`: Wires `window.resize` and `matchMedia` listeners, updating HTML attributes and publishing layout updates.
+
+### MsgMesh Event Contracts
+
+- `APP.LAYOUT.CHANGED`: Broadcast channel (`out`) published when screen tier, pointer kind, orientation, or safe area changes.
+- `APP.LAYOUT.SET_SAFE_AREA`: Request channel (`in`) allowing host shells (e.g. MAUI mobile shell) to push updated device safe area insets into the web layer.
+
+---
+
+## 4. BackStackService & Prioritized Navigation
+
+Mobile platforms (Android hardware Back button, iOS swipe-to-back, MAUI bridge) and desktop environments (Escape key) require predictable modal dismissal before page navigation. `BackStackService` provides a priority-ordered handler queue.
+
+### Priority Queue Contract
+
+Handlers are executed in descending order of `priority`. If a handler returns `true`, execution stops (the back event was handled). If it returns `false`, execution cascades down to the next handler.
+
+| Component / Layer | Recommended Priority | Behavior |
+| --- | --- | --- |
+| Context menus & dropdowns (`AdaptiveMenu`) | `300` | Closes active menu popup. |
+| Modal dialogs (`AdaptiveDialog`, `ActionSheet`) | `100` | Dismisses overlay (`open = false`). |
+| In-page selection / search modes | `50` | Clears selection or search filter. |
+| Root unhandled back handler | `0` (or fallback) | Navigates history backward or requests app minimization. |
+
+### Registration & Lifecycle
+
+- `registerBackHandler(handler)`: Queues a handler `{ id, priority, handle }`. Safe to call before MsgMesh is initialized.
+- `unregisterBackHandler(id)`: Removes a registered handler. Overlays unregister in `onClose` and `onDestroy`.
+- `setUnhandledBackHandler(fn)`: Configures the final fallback action when no queued handler handles the back event.
+
+### MsgMesh Channels
+
+- `APP.HOST.BACK`: Triggered by native shell bridge or browser Escape event. Dispatches to top-priority back handler.
+- `APP.NAV.BACK`: Application navigation back command.
+- `APP.NAV.CAN_GO_BACK`: Broadcasts whether any back handler or history step is available.
+
+---
+
+## Document: docs/topic--adaptive-overlays.md (Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu))
+
+# Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu)
+
+`@actdim/ui-core/components` provides responsive, platform-adaptive modal and overlay components:
+- `AdaptiveDialog`: Full-screen modal with sticky header on compact devices; centered dialog on medium and expanded viewports.
+- `ActionSheet`: Bottom-sheet drawer optimized for touch and mobile tiers with drag gestures and accessible action lists.
+- `AdaptiveMenu`: Responsive context and action menu rendering an `ActionSheet` on mobile and a positioned desktop `Menu` on larger screens.
+
+---
+
+## 1. Core Principles
+
+1. **Declared as children of the host component**:
+   Overlays are defined inside `def.children` via their hook constructor (`useAdaptiveDialog`, `useActionSheet`, `useAdaptiveMenu`) and rendered in `view` as `<c.children.OverlayName />` without props or inline event handlers in JSX.
+
+2. **Self-closing and Two-Way Binding**:
+   Overlays dismiss themselves internally upon backdrop click, close button tap, or Escape key. The host manages and observes visibility through a two-way binding on `open`:
+   - `bindProp(() => m, 'isDialogOpen')` for direct model synchronization.
+   - `bind(get, set)` when dismissal triggers custom cleanup logic (e.g. resetting anchor element).
+
+3. **Standard `onClose?: () => void` Contract**:
+   In addition to two-way `open` synchronization, overlay components accept an optional `onClose` callback in `def.props` to allow host components to execute side effects upon dismissal.
+
+4. **Hardware Back Button Handling**:
+   All adaptive overlay components automatically register a hardware Back button / Escape handler (`registerBackHandler`) with prioritized execution while `open` is `true`. Handlers are cleanly deregistered when closed or on component destruction (`events.onDestroy`).
+
+5. **Live Content via Fragment Children**:
+   Overlay bodies, headers, and actions are passed using reactive bindings (`bind(() => <c.children.DialogBody />)`) referencing host fragment children (`React.FC`). This guarantees live reactivity without stale closures.
+
+---
+
+## 2. Component Reference
+
+### AdaptiveDialog
+- **Props**:
+  - `open: boolean`
+  - `onClose?: () => void`
+  - `title?: React.ReactNode`
+  - `subtitle?: React.ReactNode`
+  - `tier?: LayoutTier` (defaults to current layout tier)
+  - `fullScreen?: boolean`
+  - `maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false`
+  - `fullWidth?: boolean`
+  - `children?: React.ReactNode`
+  - `actions?: React.ReactNode`
+  - `primaryAction?: React.ReactNode`
+  - `contentClassName?: TwClasses`
+  - `paperClassName?: TwClasses`
+  - `backHandlerPriority?: number` (default: 100)
+  - `backHandlerId?: string`
+
+### ActionSheet
+- **Props**:
+  - `open: boolean`
+  - `onClose?: () => void`
+  - `title?: string`
+  - `actions: MenuItemAction[]`
+
+### AdaptiveMenu
+- **Props**:
+  - `open: boolean`
+  - `onClose?: () => void`
+  - `tier: LayoutTier`
+  - `anchorEl?: HTMLElement | null`
+  - `anchorPosition?: { top: number; left: number }`
+  - `title?: string`
+  - `actions: MenuItemAction[]`
+
+---
+
+## Document: docs/topic--developer-guide.md (@actdim/ui-core Developer & Consumer Integration Guide)
+
+# @actdim/ui-core Developer & Consumer Integration Guide
+
+`@actdim/ui-core` is the platform foundation package providing semantic design tokens, Tailwind v4 styling integration, Dynstruct component conventions, adaptive overlays, and layout services for Actdim applications.
+
+This guide explains how any application consumes `@actdim/ui-core`, how to configure Tailwind v4, how to use `tw()` and components, how to safely extend the theme, and how to migrate an existing repository to `@actdim/ui-core`.
+
+---
+
+## 1. Prerequisites & Package Installation
+
+### Package Installation
+Install `@actdim/ui-core` via your package manager:
+
+```bash
+pnpm add @actdim/ui-core
+# or
+npm install @actdim/ui-core
+```
+
+For monorepos using pnpm workspaces, use the workspace protocol:
+```json
+{
+  "dependencies": {
+    "@actdim/ui-core": "workspace:*"
+  }
+}
+```
+
+### Peer Dependencies
+`@actdim/ui-core` relies on the following peer dependencies:
+- `@actdim/dynstruct` (`>=1.9.0`): Component model and reactivity.
+- `@actdim/msgmesh` (`>=1.9.0`): Typed event bus and messaging.
+- `@mui/material` (`>=9.0.1`), `@emotion/react`, `@emotion/styled`: Headless accessibility and portal primitives.
+- `react` (`>=19.2.0`), `react-dom` (`>=19.2.0`): React 19 runtime.
+- `tailwindcss` (`>=4.0.0`): Tailwind CSS v4 styling engine.
+
+---
+
+## 2. CSS & Tailwind v4 Integration
+
+### CSS Entrypoint Setup
+In your application CSS entrypoint (for example, `src/global.css`), import Tailwind v4 and the `@actdim/ui-core` token stylesheet:
+
+```css
+@import 'tailwindcss';
+@import '@actdim/ui-core/theme.css';
+```
+
+### How Tokens Work in Tailwind v4
+1. **Emitted on `:root`**: All tokens are declared in `@theme static` blocks inside `theme.css`. Tailwind emits all variables directly on `:root`.
+2. **16 Semantic Scales**: Surface (backgrounds), Foreground (text/icons), Line (borders), Intent (primary/danger/success), Spacing, Object size, Container width, Text style, Emphasis, Font family, Line thickness, Corners, Elevation, Layer (zIndex), Motion, and State opacity.
+3. **Automatic Dark Mode**: Mode colors switch automatically under `.dark` selectors. Never use `dark:` class prefixes in application JSX; use semantic tokens like `text-fg-muted` or `bg-surface-panel`.
+4. **Responsive Tier Overrides**: Surface paddings and densities adapt automatically under `[data-tier="compact"]`.
+
+---
+
+## 3. Component Conventions & tw() Usage
+
+### Dynstruct Component Model
+All application UI elements must follow the Dynstruct component model:
+1. **Struct + Def + Hook**: Every component defines a `ComponentStruct`, `ComponentDef`, and hook-constructor (`useXxx`).
+2. **Prop-less JSX**: Child components are declared inside `def.children` and rendered as `<c.children.Name />`.
+3. **Bus-First Communication**: Inter-component navigation and coordination must use MsgMesh channels (`c.msgBus.send`, `msgBroker.subscribe`). Never pass callback props (`onSelect`, `onNavigate`) across feature boundaries in JSX.
+4. **Hooks Policy**: Standard state belongs in model `props: { ... }`. Built-in React hooks (`useState`, `useEffect`) are prohibited in typical components; any non-typical usage requires an explicit `// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- <reason>`.
+
+### The tw() Class Helper
+Application markup styles elements exclusively with semantic token classes through `tw()`:
+
+```tsx
+import { tw } from '@/theme/tw';
+
+<div className={tw('flex items-center gap-snug p-normal bg-surface-panel rounded-panel')} />
+```
+
+- **Compile-Time Checking**: TypeScript validates every token class in string literals against `TwClasses`. Raw numeric classes (`p-4`, `text-slate-500`, `rounded-lg`) produce compile errors.
+- **Runtime Merging**: Merges classes safely via `clsx` and token-aware `tailwind-merge`.
+- **Content-Only Exception**: `mergeClasses(...)` is reserved strictly for non-UI content palettes (e.g. syntax highlighting, reader themes).
+
+---
+
+## 4. Adaptive Overlays & Layout Services
+
+### Adaptive Overlays
+Use canonical primitives from `@actdim/ui-core/components`:
+- `AdaptiveDialog`: Adapts from a centered dialog on expanded desktop to a full-screen or bottom sheet on compact mobile.
+- `ActionSheet`: Slide-up mobile sheet with backdrop scrim.
+- `AdaptiveMenu`: Context/dropdown menu positioned relative to target or anchored bottom.
+
+**Two-Way Binding Invariant**: Overlays bind open state via `bindProp(() => m, 'isDialogOpen')`. Callback props (`onOpen`, `onClose`) in JSX are forbidden.
+
+### Layout & Back-Stack Navigation
+- **Layout Tiers**: Managed by `LayoutService` (`@actdim/ui-core/layout`). Automatically applies `data-tier="compact" | "medium" | "expanded"` to the `<html>` root.
+- **Safe Areas**: Safe area insets are synced to CSS custom properties (`--safe-top`, `--safe-bottom`, `--safe-left`, `--safe-right`).
+- **Hardware Back Button**: Managed by `BackStackService` (`@actdim/ui-core/layout`). The topmost open overlay is dismissed first on Android/browser back navigation.
+
+---
+
+## 5. Theme Extension Policy
+
+### Centralization Invariant
+All core UI tokens (palettes, spacing scales, standard radii, z-indices) are centralized in `@actdim/ui-core`. An application must NEVER monkey-patch or redefine standard UI tokens in its own stylesheets.
+
+### Permitted Application Extensions
+Applications frequently require domain-specific styles, layout geometries, or icon libraries. These are legal and must be declared as follows:
+
+1. **Third-Party Tailwind Plugins in Application CSS**:
+   Applications may register supplementary plugins in their root CSS (e.g. `src/global.css`):
+   ```css
+   @plugin '@tailwindcss/typography';
+   @plugin 'tailwindcss-animate';
+   @plugin '@iconify/tailwind4' {
+       prefixes: mdi, tabler, material-symbols, ph, devicon, logos;
+   }
+   ```
+
+2. **Application Layout Utilities (@utility)**:
+   Layout utilities specific to the application shell belong in the application CSS:
+   ```css
+   @utility h-app {
+       height: calc(100dvh - var(--spacing-header));
+   }
+   @utility wco-header {
+       padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px));
+       padding-left: max(1rem, env(titlebar-area-x, 0px), env(safe-area-inset-left, 0px));
+   }
+   @utility pt-safe {
+       padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px));
+   }
+   ```
+
+3. **Application-Specific CSS Variables**:
+   Variables for application layout offsets are declared on `:root` or container attributes in application CSS:
+   ```css
+   :root {
+       --toast-bottom-offset: 0px;
+   }
+   [data-tier="compact"], [data-tier="compact"] * {
+       --toast-bottom-offset: calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom, 0px));
+   }
+   ```
+
+4. **Domain Content Palettes**:
+   For domain-specific colors that are not part of the UI chrome (e.g. ebook sepia reader page background, syntax highlighting), declare them as dedicated CSS custom properties or domain constants, and merge them with `mergeClasses(...)`.
+
+---
+
+## 6. Project Migration & Adoption Walkthrough
+
+When migrating an existing project to `@actdim/ui-core`, follow this standard procedure:
+
+### Step 1: Install Package & Register Dependency
+Install `@actdim/ui-core` and execute Along dependency registration:
+```bash
+pnpm add @actdim/ui-core
+along dep-scan --link
+```
+Verify that `docs/topic--dependencies.md` links to `node_modules/@actdim/ui-core/llms.txt`.
+
+### Step 2: Set Up 1-Liner Code Bridges
+To avoid rewriting hundreds of imports across an existing application, create lean re-export bridges:
+
+- `src/theme/tw.ts`:
+  ```typescript
+  export * from '@actdim/ui-core/theme';
+  ```
+- `src/config/muiTheme.ts`:
+  ```typescript
+  export {
+      muiBreakpoints,
+      createMuiAppTheme,
+      defaultMuiTheme,
+  } from '@actdim/ui-core/theme';
+  ```
+- `src/components/core/AdaptiveDialog.tsx`:
+  ```typescript
+  export {
+      type AdaptiveDialogProps,
+      type AdaptiveDialogStruct,
+      useAdaptiveDialog,
+      AdaptiveDialog,
+  } from '@actdim/ui-core/components';
+  ```
+- `src/components/core/ActionSheet.tsx`:
+  ```typescript
+  export {
+      type ActionSheetProps,
+      type ActionSheetStruct,
+      useActionSheet,
+      ActionSheet,
+  } from '@actdim/ui-core/components';
+  ```
+- `src/components/core/AdaptiveMenu.tsx`:
+  ```typescript
+  export {
+      type AdaptiveMenuProps,
+      type AdaptiveMenuStruct,
+      useAdaptiveMenu,
+      AdaptiveMenu,
+  } from '@actdim/ui-core/components';
+  ```
+- `src/services/LayoutService.tsx`:
+  ```typescript
+  export {
+      getCurrentLayout,
+      resolveCurrentLayout,
+      applyLayoutAttributesToHtml,
+      applySafeAreaToCssVariables,
+      initLayoutService,
+      useLayoutService,
+      LayoutService,
+      type LayoutServiceStruct,
+  } from '@actdim/ui-core/layout';
+  ```
+- `src/services/BackStackService.tsx`:
+  ```typescript
+  export {
+      backStack,
+      useBackStack,
+      type BackStackItem,
+      type BackStackServiceStruct,
+      type BackStackHandler,
+      type BackStackOptions,
+  } from '@actdim/ui-core/layout';
+  ```
+
+### Step 3: Clean-Room Documentation Purge
+Remove duplicate copies of UI guidelines to prevent slug collisions in Along:
+```bash
+git rm docs/topic--frontend-conventions.md
+git rm docs/topic--theme-tokens.md
+```
+Never leave 10-line stubs. The slugs `frontend-conventions` and `theme-tokens` belong exclusively to `@actdim/ui-core`.
+
+### Step 4: Streamline AGENTS.md
+In the application's `AGENTS.md`, remove all verbose lists of tokens, MobX bans, and overlay mechanics. Replace them with the canonical 2-line pointer:
+
+```markdown
+- **UI & Frontend Invariants**: All UI guidelines, component models, design tokens, adaptive layout tiers, and overlay rules are governed exclusively by `@actdim/ui-core` (`node_modules/@actdim/ui-core/docs/INDEX.md`). Application-specific architecture is defined in `docs/topic--architecture.md`.
+```
+
+### Step 5: Document the Application Delta
+In `docs/topic--architecture.md`, add a concise section documenting ONLY the application's configuration delta:
+- Core tokens from `@actdim/ui-core` via `tw()`.
+- Application-specific plugins (e.g. Iconify, Typography).
+- Application-specific layout utilities and CSS variables.
+- Link to `@actdim/ui-core/docs/topic--developer-guide.md`.
+
+---
+
+## 7. Quality Gates & Verification
+
+Before completing adoption, execute these verification commands:
+
+1. **Negative Assertions**:
+   - Verify `Test-Path docs/topic--frontend-conventions.md` is `False`.
+   - Verify `Test-Path docs/topic--theme-tokens.md` is `False`.
+   - Verify `AGENTS.md` contains 0 redundant token scales or MobX mentions.
+2. **Typography Gate**:
+   - Run `along sanitize --check`: 0 banned Unicode characters.
+3. **Compilation & Tests**:
+   - Run `npm run build` / `pnpm build`: 0 TypeScript or bundling errors.
+   - Run `along test`: 100% test pass rate.
+4. **Knowledge Base Compilation**:
+   - Run `along kb-sync`: 0 broken relative Markdown links.
+
+---
+
+## Document: docs/topic--frontend-conventions.md (Frontend Coding Conventions (Dynstruct + MsgMesh))
+
+# Frontend Coding Conventions (Dynstruct + MsgMesh)
+
+Standard architectural and coding conventions for applications and packages built on `@actdim/ui-core`, `@actdim/dynstruct`, and `@actdim/msgmesh`.
+
+---
+
+## 1. Component Model
+
+1. **Every UI element is a Dynstruct component** (`@actdim/dynstruct`): `ComponentStruct` + `ComponentDef` + `useComponent` + `toReact`. See [Dynstruct Documentation](../../dynstruct/docs/INDEX.md).
+2. **Public vs. internal struct** (`ComponentStructExt<PublicStruct, InternalState>`):
+   - Public `ComponentStruct`: only props passed by parents and the public `msgScope`. No loading flags, caches, or internal indices.
+   - Internal state: private reactive `props`, private `actions`, private `effects`.
+3. **Self-documenting `msgScope`**: the struct explicitly defines the component bus contract:
+   - `provide` - channels the component serves (`msgBroker.provide`).
+   - `subscribe` - channels/events it listens to (`msgBroker.subscribe`).
+   - `publish` - channels it sends to or requests from (`c.msgBus.send`, `c.msgBus.request`).
+4. **Children, not inline JSX**: nested dynstruct components (including `@actdim/dynstruct-mui` wrappers) go into `def.children` via their `useXxx` constructor and render as `<c.children.Name />`.
+5. **Bindings**: `bindProp(() => m, 'prop')` for two-way binding; `bind(() => expr)` for read-only values; `bind(get, set)` only for custom getter/setter logic.
+6. **Params semantics**: plain params are initial values (applied once by `useComponent`); live input goes only through bindings. Never read `params.x` in a hook-constructor (`def.props` holds defaults only; live values for children come from `m` via `bindProp` / `bind`); bind factory-child props per value (`bind(() => p.item)`), never pass `p` whole.
+7. **Clean prop-less JSX and callback policy**: Dynstruct views must remain prop-free in JSX (`<c.children.Name />`). Never pass callback functions or event handlers as JSX attributes. Callback props are strictly prohibited for inter-component coordination across features and pages (e.g. `onSelect*`, `onNavigate*`); cross-component communication and user intents must go through typed MsgMesh channels (`c.msgBus.send`, `msgBroker.subscribe`), and open/close state through two-way bindings (`bindProp`). Low-level event handlers (`onClick`, `onClose`, `onChange`) are permitted exclusively on primitive wrappers (such as `@actdim/dynstruct-mui` controls) when wired inside `def.children` during hook initialization.
+
+---
+
+## 2. State, Lifecycle & Reactivity
+
+1. **Dynstruct-first lifecycle**:
+   - State -> `props: { ... }`, mutate via `m.prop = value`.
+   - Mount / unmount -> `events: { onReady, onInit, onDestroy, onCatch, onValidate }`. Async loading on mount goes into `events.onReady`.
+   - Side effects -> `effects: { ... }` (auto-tracks accessed model props).
+   - Callbacks -> `actions: { ... }`.
+   - Form inputs -> `c.mapToEdit('fieldPath')`.
+2. **Hooks Policy (Dynstruct-First, Not a Ban)**:
+   - Built-in React hooks (`useState`, `useEffect`, `useLayoutEffect`, `useReducer`, `useMemo`, `useCallback`, `useRef`) are not needed in typical components. Use reactive model properties, lifecycle events, and actions instead.
+   - A built-in hook is acceptable only for non-typical cases the component model does not cover. Because ESLint warns on them (`@typescript-eslint/no-restricted-imports`), mark a justified use with `// eslint-disable-next-line @typescript-eslint/no-restricted-imports -- <reason>`.
+   - Custom and third-party hooks (own `useXxx`, external library hooks, React context providers) are permitted inside Dynstruct components as long as app-visible state lives in the model and communication goes through bindings and MsgMesh. See [Dynstruct React Integration](../../dynstruct/docs/topic--04-react-integration.md).
+3. **No direct MobX in application code**: no imports from `mobx` / `mobx-react-lite` (`runInAction`, `action`, `observable`, `makeObservable`, `makeAutoObservable`, `observer`, `useLocalObservable`). Dynstruct encapsulates reactivity: mutate model props directly (`m.foo = bar`) or through `actions`.
+4. **Reactivity granularity** (`ComponentProp.reactive?: true | false | 'shallow'`):
+   - `'shallow'` - for large collections, file trees, read-only arrays: container mutations are tracked, items are not proxied.
+   - `false` - for static configuration.
+
+---
+
+## 3. Communication (@actdim/msgmesh)
+
+1. **Bus-first**: inter-component interaction, notifications, and navigation go through `c.msgBus`. No prop drilling across features, no cross-component ref mutation. See [MsgMesh Documentation](../../msgmesh/docs/INDEX.md).
+2. **Channel groups**:
+   - `in` - request payloads for request/response calls (`c.msgBus.request({ channel, group: 'in' })`).
+   - `out` - provider responses and broadcast events (`msgBroker.subscribe`).
+   - `ex` - fire-and-forget commands.
+3. **Payloads through `c.msgBus`** are normalized (observables -> plain values); class instances (`File`, `Blob`, `Date`) are passed by reference.
+
+---
+
+## 4. TypeScript & Syntax Guidelines
+
+1. **Control flow blocks**: Always use multi-line `{ ... }` blocks for all control flow (`if`, `for`, `while`, `else`). Single-line bodies without braces are strictly prohibited.
+2. **Type definition integrity**: Use `type` exclusively. Never use `interface` or `class`.
+3. **Design Tokens**: All styling must use semantic tokens via `className={tw('...')}`. Hardcoded hex/rgb/color names are strictly prohibited. See [Theme Tokens Guide](./topic--theme-tokens.md).
+4. **MUI Theme Overrides Boundary**: Application and feature code must never declare or customize MUI `styleOverrides`. MUI is used strictly as a behavioral/accessibility foundation wrapped in Dynstruct components. All theme overrides for portal containers (`Dialog`, `Drawer`, `Popover`, `Backdrop`) belong exclusively in `@actdim/ui-core/src/theme/muiTheme.ts` to bridge MUI internals to semantic design tokens (`themeVar`).
+
+---
+
+## Related Context
+
+- [Knowledge Base Index](./INDEX.md)
+- [Theme Tokens and tw() Class Helper](./topic--theme-tokens.md)
+- [Adaptive Overlays Guide](./topic--adaptive-overlays.md)
+- [Adaptive Layout and Back-Stack Navigation](./topic--adaptive-layout.md)
+- [Dynstruct Knowledge Base](../../dynstruct/docs/INDEX.md)
+- [MsgMesh Knowledge Base](../../msgmesh/docs/INDEX.md)
+
+---
+
+## Document: docs/topic--theme-tokens.md (Theme Tokens and the tw() Class Helper)
+
+# Theme Tokens and the tw() Class Helper
+
+All visual style values in Actdim applications (colors, spacing, sizes, typography, borders, corners,
+shadows, layers, motion) are **semantic design tokens** declared once in
+`src/theme/theme.css`. Markup never uses raw Tailwind values (`text-slate-500`, `p-4`,
+`rounded-lg`); it uses token classes (`text-fg-muted`, `p-normal`, `rounded-control`) through the
+typed `tw()` helper, which rejects anything else at compile time.
+
+## Files
+
+| File | Role |
+| --- | --- |
+| `src/theme/theme.css` | Source of truth: every token with a description, `Based on` / `Replaces` per scale, a TOKEN TABLE, `.dark` and `[data-tier="compact"]` overrides, tier variants, `focus-ring` utility, `:focus-visible` base style. |
+| `src/theme/theme.generated.ts` | Generated from theme.css: `themeTokens` (CSS variable, value, per-mode values, sub-properties), `themeUtilities`, `themeVariants`. Committed. Do not edit. |
+| `src/theme/tw.ts` | `tw()`, `mergeClasses()`, `TwClasses`, scale types (`ThemeColor`, `ThemeSpacing`, ...), tailwind-merge config. |
+| `src/theme/tw.typecheck.ts` | Compile-time tests of the class validation (run by `tsc -b`). |
+| `src/theme/themeRuntime.ts` | Typed runtime contract for getting, setting, resetting, and batch applying CSS variables on `:root` or scoped elements (`themeRuntime`, `themeCssVars`). |
+| `postcss.ts` | The generator (`pnpm theme:gen`). |
+| `src/theme/muiTheme.ts` | MUI theme built from the same tokens (palette, radius, font, zIndex). |
+
+## How tokens become classes
+
+Tokens live in Tailwind 4 `@theme static` blocks, so they are plain `:root` CSS variables. The
+variable prefix is a Tailwind namespace and decides which classes exist:
+
+```css
+@theme static {
+    --spacing-normal: 0.75rem;      /* -> p-normal, gap-normal, mt-normal, ... */
+    --color-fg-muted: #64748b;      /* -> text-fg-muted, border-fg-muted, ... */
+    --radius-panel: 0.75rem;        /* -> rounded-panel, rounded-t-panel, ... */
+}
+
+.dark {
+    --color-fg-muted: #94a3b8;      /* same class, other value: no dark: in markup */
+}
+```
+
+## Scales
+
+| Scale | Elements | Example |
+| --- | --- | --- |
+| Surface (background) | page, panel, inset, popup, dialog, hover, selected, inverse, scrim | `bg-surface-panel` |
+| Foreground (text, icons) | fg-default, fg-muted, fg-faint, fg-disabled, fg-inverse | `text-fg-muted` |
+| Line (borders) | line-default, line-muted, line-strong, focus | `border-line-default` |
+| Intent | primary, secondary, success, info, warning, danger, neutral; roles base / -strong / -soft / -line / -contrast | `bg-danger-soft text-danger-strong` |
+| Spacing | micro, tight, snug, normal, relaxed, loose, spacious, vast | `gap-snug p-normal` |
+| Object size | control-xs/sm/md/lg, icon-sm/md/lg, avatar-sm/md/lg, cover-sm/md, touch, header, bottom-nav, sidebar | `h-control-md` |
+| Container width | form, dialog-sm/md/lg, popup, content, page (+ built-in prose) | `max-w-dialog-md` |
+| Text style | micro, caption, label, body, body-lg, title, headline, display | `text-title` |
+| Emphasis | regular, emphasis, strong | `font-emphasis` |
+| Font family | ui, prose, code | `font-code` |
+| Line thickness | thin, thick, heavy (border, ring, outline, divide) | `border-b-thick` |
+| Corners | control, panel, popup, dialog (+ built-in full) | `rounded-panel` |
+| Elevation | panel, popup, dialog (+ built-in none) | `shadow-popup` |
+| Layer | sticky, header, drawer, dialog, popup, toast, tooltip (MUI zIndex values) | `z-dialog` |
+| Motion | duration short/medium/long, ease standard/enter/exit | `duration-short ease-enter` |
+| State opacity | disabled, muted | `opacity-disabled` |
+| Variants | dark, compact, medium, expanded | `compact:hidden` |
+
+## MUI Theme Integration and styleOverrides Architecture
+
+MUI (`@mui/material`) is used exclusively for headless accessibility, portals, and low-level interactive primitives (dialogs, drawers, popovers, touch targets). It is NOT used as an application styling engine.
+
+### Role of styleOverrides in ui-core
+
+In `src/theme/muiTheme.ts`, `styleOverrides` serve as a one-time infrastructure bridge connecting internal MUI portal elements to semantic design tokens:
+
+- **Portal DOM Containers**: Elements like `.MuiDialog-paper`, `.MuiDrawer-paper`, `.MuiPopover-paper`, and `.MuiBackdrop-root` render outside the standard DOM hierarchy via React portals. Their default Material Design aesthetics are replaced with design tokens via `themeVar(...)`:
+  - `MuiBackdrop.root`: `themeVar('color', 'surface-scrim')`
+  - `MuiDialog.paper`: `themeVar('color', 'surface-dialog')`, `themeVar('radius', 'dialog')`, `themeVar('shadow', 'dialog')`
+  - `MuiDrawer.paper`: `themeVar('color', 'surface-dialog')`
+  - `MuiPopover.paper`: `themeVar('color', 'surface-popup')`, `themeVar('radius', 'popup')`, `themeVar('shadow', 'popup')`
+- **Touch Target Enforcements**: Mobile/touch accessibility minimums (`44px` on `pointer: coarse`) are enforced globally on `MuiButtonBase` and `MuiIconButton`.
+
+### Strict Boundary and Negative Invariants
+
+1. **No Application-Level styleOverrides**: Applications (`src/apps/*`) and feature modules must NEVER define or customize MUI `styleOverrides`. Applications import `createMuiAppTheme` from `@actdim/ui-core/theme` without mutation.
+2. **Tailwind-First Styling**: All application UI styling is written with Dynstruct components and Tailwind v4 semantic token classes via `className={tw('...')}`.
+3. **Infrastructure Isolation**: `styleOverrides` are an infrastructure adapter in `@actdim/ui-core`, not a template or standard for feature development. If a new primitive with portal DOM nodes is introduced to `@actdim/ui-core`, its token bindings belong strictly in `src/theme/muiTheme.ts`.
+
+---
+
+## ThemeService Architecture and Lifecycle
+
+`ThemeService` (`src/theme/ThemeService.tsx`) coordinates theme preference, system dark mode queries, DOM attributes, browser chrome meta tags, and MsgMesh events.
+
+### Mode and Preference Types
+
+- `ThemePreference`: `'light' | 'dark' | 'system'` (user preference, persisted in `localStorage`).
+- `ThemeMode`: `'light' | 'dark'` (resolved active mode applied to the document).
+
+### Service Contracts
+
+1. **System Resolution**: `resolveThemeMode(preference, systemMode)` resolves `'system'` to the current OS setting (`matchMedia('(prefers-color-scheme: dark)')`).
+2. **DOM Synchronization**:
+   - `applyThemeToHtml(mode)`: Toggles class `.dark` on `document.documentElement` and sets `data-theme="dark" | "light"`.
+   - `applyThemeToMeta(mode)`: Updates `<meta name="theme-color">` to match the background surface token (`#f8fafc` for light, `#020617` for dark).
+3. **MsgMesh Integration**:
+   - `APP.THEME.CHANGED`: Broadcasts `{ mode, preference, muiTheme }` to subscribed components (used by Dynstruct root to update MUI `ThemeProvider`).
+   - `APP.THEME.SET_PREFERENCE`: Inbound command accepting `{ preference }`.
+
+---
+
+## IDE and Editor Integration (Tailwind CSS IntelliSense)
+
+To enable class completions, linting, and hover previews (displaying generated CSS and variable values) for `tw('...')` calls inside VS Code:
+
+### 1. Class Function Recognition
+The Tailwind CSS IntelliSense extension (`bradlc.vscode-tailwindcss`) by default inspects only `class` and `className` JSX attributes. To parse class string arguments inside function calls like `tw('...')` or `clsx('...')`, add them to `tailwindCSS.classFunctions` in workspace `.vscode/settings.json`:
+
+```json
+{
+    "tailwindCSS.classFunctions": ["tw", "clsx", "cva", "cn"]
+}
+```
+
+### 2. Monorepo Config Resolution in Tailwind v4
+In Tailwind v4, configuration is CSS-first (`@import 'tailwindcss';` + `@theme static`). In a monorepo where `@actdim/ui-core` is an extracted library package without a direct Tailwind runtime build, the language server needs to know which CSS stylesheet supplies the theme tokens and utilities:
+
+```json
+{
+    "tailwindCSS.experimental.configFile": "src/apps/webapp/src/global.css"
+}
+```
+
+Specifying `tailwindCSS.experimental.configFile` in the root `.vscode/settings.json` points the language server to `src/apps/webapp/src/global.css`, ensuring that hover styles and completions work across both application code and package components (such as `ActionSheet`, `AdaptiveDialog`, `AdaptiveMenu`).

@@ -1,6 +1,6 @@
 {
     "name": "@actdim/ui-core",
-    "version": "0.1.0",
+    "version": "1.9.0",
     "description": "Shared UI foundation, theme system, design tokens, and Dynstruct component conventions for Actdim applications",
     "author": "Pavel Borodaev",
     "license": "MIT",
@@ -12,5 +12,113 @@
     "bugs": {
         "url": "https://github.com/actdim/ui-core/issues"
     },
-    "homepage": "https://github.com/actdim/ui-core/#readme"
+    "homepage": "https://github.com/actdim/ui-core/#readme",
+    "keywords": [
+        "typescript",
+        "react",
+        "dynstruct",
+        "theme",
+        "tokens",
+        "tailwind",
+        "mui",
+        "adaptive",
+        "overlays"
+    ],
+    "files": [
+        "dist",
+        "docs",
+        "README.md",
+        "LICENSE",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "llms.txt",
+        "llms-full.txt",
+        "src/theme/theme.css"
+    ],
+    "ai": {
+        "instructions": "./AGENTS.md",
+        "docs": "./docs",
+        "llms": "./llms.txt",
+        "llms-full": "./llms-full.txt"
+    },
+    "llms": "./llms.txt",
+    "files(src)": [
+        "src",
+        "docs",
+        "README.md",
+        "LICENSE",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "llms.txt",
+        "llms-full.txt"
+    ],
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.es.js"
+        },
+        "./theme.css": "./src/theme/theme.css",
+        "./theme": {
+            "types": "./dist/theme/index.d.ts",
+            "import": "./dist/theme/index.es.js"
+        },
+        "./layout": {
+            "types": "./dist/layout/index.d.ts",
+            "import": "./dist/layout/index.es.js"
+        },
+        "./components": {
+            "types": "./dist/components/index.d.ts",
+            "import": "./dist/components/index.es.js"
+        },
+        "./*": {
+            "types": "./dist/*.d.ts",
+            "import": "./dist/*.es.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "*": [
+                "dist/*.d.ts"
+            ]
+        }
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "sideEffects": false,
+    "packageManager": "pnpm@10.22.0",
+    "scripts": {
+        "test": "npx vitest --config=vitest.node.config.ts --no-cache",
+        "test:w": "npx vitest --config=vitest.node.config.ts --watch",
+        "lint": "eslint \"./**/*.{ts,tsx}\" -f visualstudio --report-unused-disable-directives",
+        "build": "tsc -b tsconfig.json --noEmit && vite build",
+        "theme:gen": "node --experimental-strip-types --no-warnings postcss.ts",
+        "typecheck": "tsc -p tsconfig.json --noEmit"
+    },
+    "dependencies": {
+        "clsx": "^2.1.1",
+        "tailwind-merge": "^3.6.0"
+    },
+    "peerDependencies": {
+        "@actdim/dynstruct": ">=1.9.0",
+        "@actdim/dynstruct-mui": ">=1.9.0",
+        "@actdim/msgmesh": ">=1.9.0",
+        "@emotion/react": ">=11.14.0",
+        "@emotion/styled": ">=11.14.1",
+        "@mui/material": ">=9.0.1",
+        "postcss": ">=8.5.0",
+        "react": ">=19.2.0",
+        "react-dom": ">=19.2.0"
+    },
+    "devDependencies": {
+        "@types/node": "^24.10.0",
+        "@types/react": "^19.2.18",
+        "@types/react-dom": "^19.2.7",
+        "postcss": "^8.5.2",
+        "typescript": "^5.9.3",
+        "vite": "^7.3.1",
+        "vite-plugin-dts": "^4.5.4",
+        "vite-tsconfig-paths": "^5.1.4",
+        "vitest": "^4.0.18"
+    }
 }

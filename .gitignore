@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.out/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+*.log
+.along/diagnostics/
+.along/dashboard.html
+.along/DASHBOARD.md
+__pycache__/
+*.pyc
