@@ -911,6 +911,25 @@
     outline-offset: 2px;
 }
 
+/* Safe area padding utilities. Ensure UI elements avoid notches, status bars,
+   and home indicators on mobile and hybrid hosts (MAUI, PWA).
+   Combine env(safe-area-inset-*) with CSS variable fallbacks set by LayoutService. */
+@utility pt-safe {
+    padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px));
+}
+
+@utility pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px));
+}
+
+@utility pl-safe {
+    padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left, 0px));
+}
+
+@utility pr-safe {
+    padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right, 0px));
+}
+
 
 /* ============================================================================
    VARIANTS - LAYOUT TIERS  (compact:, medium:, expanded:)
@@ -947,6 +966,16 @@
    tint any dark surface instead of looking like pale patches.
    ============================================================================ */
 @layer base {
+    /* Safe area insets and toast positioning defaults.
+       Overridden dynamically at runtime by LayoutService. */
+    :root {
+        --safe-top: 0px;
+        --safe-bottom: 0px;
+        --safe-left: 0px;
+        --safe-right: 0px;
+        --toast-bottom-offset: 0px;
+    }
+
     /* Visible keyboard focus indicator across the application.
        Based on WCAG 2.4.7 (visible focus). */
     :focus-visible {
@@ -1049,6 +1078,9 @@
         --spacing-control-sm: 2.25rem;
         --spacing-control-md: 2.75rem;
         --spacing-control-lg: 3rem;
+
+        /* Toast and floating action offset above bottom navigation and home bar */
+        --toast-bottom-offset: calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom, 0px));
     }
 }
 

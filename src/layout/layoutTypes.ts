@@ -18,6 +18,7 @@ export type LayoutInfo = {
     pointer: InputPointer;
     orientation: LayoutOrientation;
     safeArea: SafeAreaInsets;
+    keyboardVisible?: boolean;
 };
 
 export type LayoutMsgStruct = MsgStruct<{

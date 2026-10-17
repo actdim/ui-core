@@ -31,6 +31,24 @@ let cachedLayout: LayoutInfo = {
     pointer: 'fine',
     orientation: 'landscape',
     safeArea: { ...defaultSafeArea },
+    keyboardVisible: false,
+};
+
+let activeInputFocused = false;
+
+const isTextInputElement = (el: Element | null): boolean => {
+    if (!el) {
+        return false;
+    }
+    const tag = el.tagName;
+    if (tag === 'INPUT') {
+        const type = (el as HTMLInputElement).type?.toLowerCase();
+        return !['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file'].includes(type);
+    }
+    if (tag === 'TEXTAREA') {
+        return true;
+    }
+    return (el as HTMLElement).isContentEditable === true;
 };
 
 export const getCurrentLayout = (): LayoutInfo => {
@@ -60,11 +78,27 @@ export const resolveCurrentLayout = (): LayoutInfo => {
         : window.innerHeight > window.innerWidth;
     const orientation: LayoutOrientation = isPortrait ? 'portrait' : 'landscape';
 
+    let keyboardVisible = false;
+    if (tier === 'compact') {
+        if (window.visualViewport) {
+            const heightDiff = window.innerHeight - window.visualViewport.height;
+            if (heightDiff > 150) {
+                keyboardVisible = true;
+            }
+        }
+        if (!keyboardVisible && activeInputFocused) {
+            keyboardVisible = true;
+        } else if (!keyboardVisible && typeof document !== 'undefined' && isTextInputElement(document.activeElement)) {
+            keyboardVisible = true;
+        }
+    }
+
     return {
         tier,
         pointer,
         orientation,
         safeArea: { ...cachedLayout.safeArea },
+        keyboardVisible,
     };
 };
 
@@ -72,6 +106,11 @@ export const applyLayoutAttributesToHtml = (layout: LayoutInfo): void => {
     if (typeof document !== 'undefined' && document.documentElement) {
         document.documentElement.setAttribute('data-tier', layout.tier);
         document.documentElement.setAttribute('data-pointer', layout.pointer);
+        if (layout.keyboardVisible) {
+            document.documentElement.setAttribute('data-keyboard', 'visible');
+        } else {
+            document.documentElement.removeAttribute('data-keyboard');
+        }
     }
 };
 
@@ -99,7 +138,8 @@ export const initLayoutService = (msgBus: MsgBus<LayoutMsgStruct>): () => void =
         const hasChanged =
             next.tier !== cachedLayout.tier ||
             next.pointer !== cachedLayout.pointer ||
-            next.orientation !== cachedLayout.orientation;
+            next.orientation !== cachedLayout.orientation ||
+            next.keyboardVisible !== cachedLayout.keyboardVisible;
 
         if (hasChanged) {
             cachedLayout = next;
@@ -109,6 +149,22 @@ export const initLayoutService = (msgBus: MsgBus<LayoutMsgStruct>): () => void =
                 payload: next,
             });
         }
+    };
+
+    const handleVisualViewportResize = () => {
+        checkAndPublish();
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+        if (isTextInputElement(event.target as Element | null)) {
+            activeInputFocused = true;
+            checkAndPublish();
+        }
+    };
+
+    const handleFocusOut = () => {
+        activeInputFocused = false;
+        checkAndPublish();
     };
 
     const mediaQueries = [
@@ -135,6 +191,11 @@ export const initLayoutService = (msgBus: MsgBus<LayoutMsgStruct>): () => void =
     if (typeof window !== 'undefined') {
         window.addEventListener('resize', checkAndPublish);
         window.addEventListener('orientationchange', checkAndPublish);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleVisualViewportResize);
+        }
+        window.addEventListener('focusin', handleFocusIn);
+        window.addEventListener('focusout', handleFocusOut);
     }
 
     // Support safe-area updates via standard channel
@@ -160,6 +221,11 @@ export const initLayoutService = (msgBus: MsgBus<LayoutMsgStruct>): () => void =
         if (typeof window !== 'undefined') {
             window.removeEventListener('resize', checkAndPublish);
             window.removeEventListener('orientationchange', checkAndPublish);
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleVisualViewportResize);
+            }
+            window.removeEventListener('focusin', handleFocusIn);
+            window.removeEventListener('focusout', handleFocusOut);
         }
     };
 };
@@ -192,6 +258,7 @@ export const useLayoutService = (params: ComponentParams<LayoutServiceStruct>) =
                                 c.model.pointer = msg.payload.pointer;
                                 c.model.orientation = msg.payload.orientation;
                                 c.model.safeArea = msg.payload.safeArea;
+                                c.model.keyboardVisible = msg.payload.keyboardVisible;
                                 applyLayoutAttributesToHtml(msg.payload);
                             }
                         },

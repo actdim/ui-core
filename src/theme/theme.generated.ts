@@ -324,6 +324,6 @@ export const themeCssVars = {
     },
 } as const;
 
-export const themeUtilities = ['focus-ring'] as const;
+export const themeUtilities = ['focus-ring', 'pt-safe', 'pb-safe', 'pl-safe', 'pr-safe'] as const;
 
 export const themeVariants = ['dark', 'compact', 'medium', 'expanded'] as const;

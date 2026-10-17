@@ -34,6 +34,12 @@ type MockWindow = {
         addEventListener: (event: string, cb: () => void) => void;
         removeEventListener: (event: string, cb: () => void) => void;
     };
+    visualViewport?: {
+        height: number;
+        width: number;
+        addEventListener: (event: string, cb: () => void) => void;
+        removeEventListener: (event: string, cb: () => void) => void;
+    };
     addEventListener: (type: string, listener: (ev: unknown) => void) => void;
     removeEventListener: (type: string, listener: (ev: unknown) => void) => void;
 };
@@ -157,6 +163,7 @@ describe('Adaptive Layout Foundation', () => {
             pointer: 'coarse',
             orientation: 'portrait',
             safeArea: { top: 47, right: 0, bottom: 34, left: 0 },
+            keyboardVisible: false,
         });
 
         expect(mockWin.document.documentElement.getAttribute('data-tier')).toBe('compact');
@@ -206,5 +213,41 @@ describe('Adaptive Layout Foundation', () => {
         const layout = getCurrentLayout();
         expect(layout).toBeDefined();
         expect(layout.tier).toBeDefined();
+    });
+
+    it('applies data-keyboard attribute when keyboard is visible', () => {
+        const doc = mockWin.document.documentElement;
+        applyLayoutAttributesToHtml({
+            tier: 'compact',
+            pointer: 'coarse',
+            orientation: 'portrait',
+            safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
+            keyboardVisible: true,
+        });
+        expect(doc.getAttribute('data-keyboard')).toBe('visible');
+
+        applyLayoutAttributesToHtml({
+            tier: 'compact',
+            pointer: 'coarse',
+            orientation: 'portrait',
+            safeArea: { top: 0, right: 0, bottom: 0, left: 0 },
+            keyboardVisible: false,
+        });
+        expect(doc.getAttribute('data-keyboard')).toBeNull();
+    });
+
+    it('detects virtual keyboard height difference on compact tier', () => {
+        mockWin.innerWidth = 390;
+        mockWin.innerHeight = 844;
+        mockWin.visualViewport = {
+            width: 390,
+            height: 500, // 844 - 500 = 344 > 150
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        };
+
+        const layout = resolveCurrentLayout();
+        expect(layout.tier).toBe('compact');
+        expect(layout.keyboardVisible).toBe(true);
     });
 });

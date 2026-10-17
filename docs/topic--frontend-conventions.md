@@ -67,6 +67,7 @@ Standard architectural and coding conventions for applications and packages buil
 2. **Type definition integrity**: Use `type` exclusively. Never use `interface` or `class`.
 3. **Design Tokens**: All styling must use semantic tokens via `className={tw('...')}`. Hardcoded hex/rgb/color names are strictly prohibited. See [Theme Tokens Guide](./topic--theme-tokens.md).
 4. **MUI Theme Overrides Boundary**: Application and feature code must never declare or customize MUI `styleOverrides`. MUI is used strictly as a behavioral/accessibility foundation wrapped in Dynstruct components. All theme overrides for portal containers (`Dialog`, `Drawer`, `Popover`, `Backdrop`) belong exclusively in `@actdim/ui-core/src/theme/muiTheme.ts` to bridge MUI internals to semantic design tokens (`themeVar`).
+5. **Responsive Tier Variants vs Breakpoints**: Visibility, toolbar composition, and structural layout branching must use `compact:`, `medium:`, `expanded:` or `m.tier`. Raw Tailwind `sm:` visibility toggles (`sm:hidden`, `sm:flex`) are strictly prohibited because `sm:` (640px) triggers on landscape phones while `m.tier` remains `compact`. Safe area padding (`pt-safe`, `pb-safe`, `pl-safe`, `pr-safe`) and keyboard awareness (`data-keyboard="visible"`) are provided out-of-the-box by `@actdim/ui-core/theme.css` and `LayoutService`. See [Adaptive Layout Guide](./topic--adaptive-layout.md).
 
 ---
 
