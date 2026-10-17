@@ -53,12 +53,49 @@ The layout engine categorizes viewports into three semantic tiers, aligned with 
 
 ---
 
-## 3. Responsive Breakpoint Rules (Tier Variants vs Tailwind Breakpoints)
+## 3. Responsive Breakpoint Rules & Pitfalls
 
-To prevent visual and behavioral desynchronization on mobile devices:
-1. **Layout-Shape Invariant**: Structural layout changes (showing/hiding toolbars, switching drawer vs header, bottom sheet vs dialog, 1-pane vs 2-pane) MUST use tier variants (`compact:`, `medium:`, `expanded:`) or `m.tier`.
-2. **Tailwind `sm:` Prohibition for Structure**: Standard Tailwind `sm:` (640px) falls inside `compact` (<768px). A phone in landscape (e.g. 667x375 or 740x360) is `compact` in JS (`m.tier === 'compact'`). Using `sm:hidden` or `sm:flex` causes desktop-style controls to appear while menus remain bottom sheets. `sm:` is forbidden for visibility/layout toggles.
-3. **Internal Density Permitted**: Tailwind breakpoints (`sm:`, `md:`, `lg:`, `xl:`) are permitted solely for fine-grained internal grid density (such as `grid-cols-2 sm:grid-cols-3 md:grid-cols-4`).
+To prevent visual and behavioral desynchronization across devices, platforms, and embedded shells, follow these core architectural rules:
+
+### 3.1. Layout-Shape vs Internal Density Invariant
+- **Layout-Shape decisions** (showing/hiding toolbars, switching drawer vs header, bottom sheet vs dialog, 1-pane vs 2-pane) MUST use tier variants (`compact:`, `medium:`, `expanded:`) or reactive `m.tier`.
+- **Viewport media queries (`sm:`, `md:`, `lg:`) are strictly forbidden for layout-shape or visibility toggles**:
+  - Tailwind `sm:` (640px) falls inside `compact` (< 768px). A phone in landscape (e.g. 667x375 or 740x360) is `compact` in JS (`m.tier === 'compact'`). Using `sm:hidden` or `sm:flex` causes desktop-style controls to appear while menus remain bottom sheets.
+  - Viewport queries measure `window.innerWidth`. If the app is embedded in a split view, webview shell, or side dock, container width != viewport width. `[data-tier]` always tracks the application's actual display tier.
+- **Internal Density Permitted**: Tailwind breakpoints (`md:`, `lg:`, `xl:`) or Container Queries (`@container`) are permitted solely for fine-grained internal grid density (such as `grid-cols-2 md:grid-cols-4 lg:grid-cols-6`).
+
+### 3.2. Landscape Mobile & Aspect Ratio Traps
+- In landscape mode, smartphones present wide screens (667px - 932px) but severely constrained heights (360px - 430px).
+- Fixed-height modals or non-scrollable sheets get clipped off-screen, hiding action buttons.
+- Overlays on `compact` tier MUST enforce scrollable content bodies with dynamic viewport height limits: `max-h-[calc(100dvh-var(--safe-top)-var(--safe-bottom))] overflow-y-auto`.
+- Toolbars on `compact` landscape should compress vertically (36px - 40px) to maximize content view area.
+
+### 3.3. Virtual Keyboard Awareness
+- On mobile devices, opening the on-screen keyboard compresses `visualViewport.height`.
+- Fixed bottom navigation bars (`BottomNav`), floating action buttons (`Fab`), or sticky footers will float on top of the keyboard and obstruct form fields if not hidden.
+- `LayoutService` synchronizes `data-keyboard="visible"` on `<html>` and updates `layout.keyboardVisible`.
+- Bottom navigation bars and floating buttons must conditionally unmount when `m.keyboardVisible` is true or hide via CSS `data-keyboard:hidden`.
+
+### 3.4. Safe Area Insets (Edge-to-Edge Displays)
+- Hardcoded offsets (`pt-4`, `pb-4`, `bottom-0`, `top-0`) collide with camera notches, Dynamic Islands, and system gesture bars.
+- Outermost layout boundaries and fixed bars must use `pt-safe`, `pb-safe`, `pl-safe`, `pr-safe` or `--safe-*` CSS custom properties.
+- Floating overlays (toasts, FABs) must use `--toast-bottom-offset` on `compact` tier to clear the bottom navigation bar and home indicator.
+
+### 3.5. Touch Targets & Sticky Hover
+- When `data-pointer="coarse"` is active, interactive elements must meet the minimum touch target size of 44x44px (`min-h-touch`, `min-w-touch` or padding around icon buttons).
+- Raw `:hover` pseudo-classes stick on touch devices after a tap. Use `@media (hover: hover) and (pointer: fine)` or pointer variants so buttons do not remain visually highlighted.
+
+### 3.6. Decision Matrix
+
+| Context | Recommended Mechanism | Forbidden Anti-Pattern |
+| --- | --- | --- |
+| Show/hide actions or buttons | `compact:hidden`, `medium:inline-flex`, `m.tier` | `sm:hidden`, `hidden sm:flex` |
+| Paradigm shift (sheet vs modal, drawer vs sidebar) | `m.tier === 'compact'` | CSS `@media` queries |
+| Content grid column counts | `grid-cols-2 md:grid-cols-4` or `@container` | Fixed pixel widths `w-[800px]` |
+| Modal overlay height | `max-h-[calc(100dvh-...)] overflow-y-auto` | Fixed `h-[500px]` without scroll |
+| Fixed bottom bars / FABs | `pb-safe`, hide when `keyboardVisible` | `bottom: 0; pb-2` |
+| Touch button sizing | `min-h-[44px] min-w-[44px]` on coarse | Dense `< 36px` touch targets |
+| Hover styles | `@media (hover: hover)` | Raw `:hover` sticking on touch |
 
 ---
 
@@ -81,7 +118,7 @@ To prevent visual and behavioral desynchronization on mobile devices:
 
 ---
 
-## 4. BackStackService & Prioritized Navigation
+## 5. BackStackService & Prioritized Navigation
 
 Mobile platforms (Android hardware Back button, iOS swipe-to-back, MAUI bridge) and desktop environments (Escape key) require predictable modal dismissal before page navigation. `BackStackService` provides a priority-ordered handler queue.
 
