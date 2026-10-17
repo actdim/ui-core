@@ -4,7 +4,7 @@ slug: INDEX
 title: '@actdim/ui-core - Knowledge Base Topic Index'
 type: index
 created: 2026-10-15
-updated: 2026-10-16
+updated: 2026-10-17
 tags: [index, kb, topics, map]
 ---
 
@@ -30,8 +30,8 @@ flowchart TD
     T_THEME_TOKENS["Theme Tokens and the tw() Class Helper"]
     INDEX --> T_THEME_TOKENS
     T_FRONTEND_CONVENTIONS -.->|references| T_THEME_TOKENS
-    T_FRONTEND_CONVENTIONS -.->|references| T_ADAPTIVE_OVERLAYS
     T_FRONTEND_CONVENTIONS -.->|references| T_ADAPTIVE_LAYOUT
+    T_FRONTEND_CONVENTIONS -.->|references| T_ADAPTIVE_OVERLAYS
 ```
 
 ---

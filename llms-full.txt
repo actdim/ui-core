@@ -175,6 +175,7 @@ The layout engine categorizes viewports into three semantic tiers, aligned with 
 `LayoutService` automatically synchronizes the active layout with `document.documentElement` attributes:
 - `data-tier="compact" | "medium" | "expanded"`: Enables tier-targeted CSS rules and Tailwind variant hooks (`compact:hidden`, `expanded:flex`).
 - `data-pointer="coarse" | "fine"`: Reflects primary input capability (`(pointer: coarse)` vs `(pointer: fine)`). Used to enforce 44px minimum touch targets on mobile devices.
+- `data-keyboard="visible"`: Set when the mobile virtual keyboard is active (detected via `window.visualViewport` height compression or text input focus on compact tier). Used to hide bottom navigation bars, floating buttons, and fixed bars that collide with the on-screen keyboard.
 
 ---
 
@@ -182,31 +183,42 @@ The layout engine categorizes viewports into three semantic tiers, aligned with 
 
 `applySafeAreaToCssVariables` updates CSS custom properties on `:root` to ensure UI elements do not collide with notches, home indicator bars, or system status bars:
 
-- `--safe-top`: Safe area inset top in pixels.
-- `--safe-bottom`: Safe area inset bottom in pixels.
-- `--safe-left`: Safe area inset left in pixels.
-- `--safe-right`: Safe area inset right in pixels.
-- `--toast-bottom-offset`: Dynamically computed bottom offset for toasts and floating action buttons (e.g. above bottom navigation on `compact` tier).
+- `--safe-top`: Safe area inset top in pixels (default `0px`).
+- `--safe-bottom`: Safe area inset bottom in pixels (default `0px`).
+- `--safe-left`: Safe area inset left in pixels (default `0px`).
+- `--safe-right`: Safe area inset right in pixels (default `0px`).
+- `--toast-bottom-offset`: Dynamically computed bottom offset for toasts and floating action buttons (automatically set to `calc(var(--spacing-bottom-nav) + env(safe-area-inset-bottom, 0px))` on `compact` tier).
 
 ### Utility Classes
 
-Applications use standard CSS utility classes configured in `global.css`:
+`@actdim/ui-core/theme.css` exports canonical Tailwind v4 utilities out of the box:
 - `pt-safe`: `padding-top: max(env(safe-area-inset-top, 0px), var(--safe-top, 0px))`
 - `pb-safe`: `padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-bottom, 0px))`
+- `pl-safe`: `padding-left: max(env(safe-area-inset-left, 0px), var(--safe-left, 0px))`
+- `pr-safe`: `padding-right: max(env(safe-area-inset-right, 0px), var(--safe-right, 0px))`
 
 ---
 
-## 3. LayoutService Architecture
+## 3. Responsive Breakpoint Rules (Tier Variants vs Tailwind Breakpoints)
 
-`LayoutService` is a Dynstruct service managing viewport resizing, orientation, and pointer detection:
+To prevent visual and behavioral desynchronization on mobile devices:
+1. **Layout-Shape Invariant**: Structural layout changes (showing/hiding toolbars, switching drawer vs header, bottom sheet vs dialog, 1-pane vs 2-pane) MUST use tier variants (`compact:`, `medium:`, `expanded:`) or `m.tier`.
+2. **Tailwind `sm:` Prohibition for Structure**: Standard Tailwind `sm:` (640px) falls inside `compact` (<768px). A phone in landscape (e.g. 667x375 or 740x360) is `compact` in JS (`m.tier === 'compact'`). Using `sm:hidden` or `sm:flex` causes desktop-style controls to appear while menus remain bottom sheets. `sm:` is forbidden for visibility/layout toggles.
+3. **Internal Density Permitted**: Tailwind breakpoints (`sm:`, `md:`, `lg:`, `xl:`) are permitted solely for fine-grained internal grid density (such as `grid-cols-2 sm:grid-cols-3 md:grid-cols-4`).
+
+---
+
+## 4. LayoutService Architecture
+
+`LayoutService` is a Dynstruct service managing viewport resizing, orientation, pointer detection, and virtual keyboard state:
 
 ### Public API
 
-- `getCurrentLayout()`: Synchronously returns the cached `LayoutInfo` `{ tier, pointer, orientation, safeArea }`.
-- `resolveCurrentLayout()`: Evaluates `window.innerWidth`, media queries, and platform safe area insets to produce fresh `LayoutInfo`.
-- `applyLayoutAttributesToHtml(layout)`: Updates `data-tier` and `data-pointer` on `document.documentElement`.
+- `getCurrentLayout()`: Synchronously returns the cached `LayoutInfo` `{ tier, pointer, orientation, safeArea, keyboardVisible }`.
+- `resolveCurrentLayout()`: Evaluates `window.innerWidth`, media queries, platform safe area insets, and `visualViewport` to produce fresh `LayoutInfo`.
+- `applyLayoutAttributesToHtml(layout)`: Updates `data-tier`, `data-pointer`, and `data-keyboard` on `document.documentElement`.
 - `applySafeAreaToCssVariables(insets)`: Injects `--safe-*` variables into `:root`.
-- `initLayoutService(msgBus)`: Wires `window.resize` and `matchMedia` listeners, updating HTML attributes and publishing layout updates.
+- `initLayoutService(msgBus)`: Wires `window.resize`, `matchMedia`, `visualViewport`, and focus listeners, updating HTML attributes and publishing layout updates.
 
 ### MsgMesh Event Contracts
 
@@ -704,6 +716,7 @@ Standard architectural and coding conventions for applications and packages buil
 2. **Type definition integrity**: Use `type` exclusively. Never use `interface` or `class`.
 3. **Design Tokens**: All styling must use semantic tokens via `className={tw('...')}`. Hardcoded hex/rgb/color names are strictly prohibited. See [Theme Tokens Guide](./topic--theme-tokens.md).
 4. **MUI Theme Overrides Boundary**: Application and feature code must never declare or customize MUI `styleOverrides`. MUI is used strictly as a behavioral/accessibility foundation wrapped in Dynstruct components. All theme overrides for portal containers (`Dialog`, `Drawer`, `Popover`, `Backdrop`) belong exclusively in `@actdim/ui-core/src/theme/muiTheme.ts` to bridge MUI internals to semantic design tokens (`themeVar`).
+5. **Responsive Tier Variants vs Breakpoints**: Visibility, toolbar composition, and structural layout branching must use `compact:`, `medium:`, `expanded:` or `m.tier`. Raw Tailwind `sm:` visibility toggles (`sm:hidden`, `sm:flex`) are strictly prohibited because `sm:` (640px) triggers on landscape phones while `m.tier` remains `compact`. Safe area padding (`pt-safe`, `pb-safe`, `pl-safe`, `pr-safe`) and keyboard awareness (`data-keyboard="visible"`) are provided out-of-the-box by `@actdim/ui-core/theme.css` and `LayoutService`. See [Adaptive Layout Guide](./topic--adaptive-layout.md).
 
 ---
 
