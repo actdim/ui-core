@@ -4,7 +4,7 @@ slug: INDEX
 title: '@actdim/ui-core - Knowledge Base Topic Index'
 type: index
 created: 2026-10-15
-updated: 2026-10-18
+updated: 2026-10-19
 tags: [index, kb, topics, map]
 ---
 
