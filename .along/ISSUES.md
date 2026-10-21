@@ -4,6 +4,7 @@
 <!-- No active issues -->
 
 ## Backlog
+- [ ] `(feat)` [i18n-service](ISSUES/feat--i18n-service.md)
 - [ ] `(task)` [agent-native-tokens-and-rules](ISSUES/task--agent-native-tokens-and-rules.md)
 
 ## Done (recent)
