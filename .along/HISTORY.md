@@ -10,3 +10,4 @@ _`<YYYY-MM-DD> - <slug> - <agent> - <summary> - <relative link>`_
 2026-10-17 - mobile-adaptivity-foundation - antigravity - Centralize safe area CSS utilities and virtual keyboard handling in ui-core - [Session Log](./SESSIONS/2026/2026-10-17--mobile-adaptivity-foundation.md)
 2026-10-17 - adaptive-layout-comprehensive-guidelines - antigravity - Expand adaptive layout and responsive guidelines documentation with gotchas and decision matrix - [Session Log](./SESSIONS/2026/2026-10-17--adaptive-layout-comprehensive-guidelines.md)
 2026-10-19 - fix-docs-mermaid-dependency - antigravity - Add mermaid devDependency for VitePress build in ui-core - [Session Log](./SESSIONS/2026/2026-10-19--fix-docs-mermaid-dependency.md)
+2026-10-21 - i18n-service - antigravity - feat: LocaleService on MsgMesh, typed t(), formatters, ui-core namespace - [Session Log](./SESSIONS/2026/2026-10-21--i18n-service.md)

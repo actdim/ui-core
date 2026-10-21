@@ -27,10 +27,13 @@ flowchart TD
     INDEX --> T_DEVELOPER_GUIDE
     T_FRONTEND_CONVENTIONS["Frontend Coding Conventions (Dynstruct + MsgMesh)"]
     INDEX --> T_FRONTEND_CONVENTIONS
+    T_I18N["UI Internationalization Foundation (@actdim/ui-core/i18n)"]
+    INDEX --> T_I18N
     T_THEME_TOKENS["Theme Tokens and the tw() Class Helper"]
     INDEX --> T_THEME_TOKENS
     T_FRONTEND_CONVENTIONS -.->|references| T_THEME_TOKENS
     T_FRONTEND_CONVENTIONS -.->|references| T_ADAPTIVE_LAYOUT
+    T_FRONTEND_CONVENTIONS -.->|references| T_I18N
     T_FRONTEND_CONVENTIONS -.->|references| T_ADAPTIVE_OVERLAYS
 ```
 
@@ -43,6 +46,7 @@ flowchart TD
 - **[Dependencies & Submodules AI Documentation and Rules](./topic--dependencies.md)** (topic) `dependencies`, `ai-context`, `submodules`, `vendor`, `rules`
 - **[@actdim/ui-core Developer & Consumer Integration Guide](./topic--developer-guide.md)** (guide) `developer-guide`, `integration`, `adoption`, `migration`, `theming`, `tailwind`, `dynstruct`, `overlays`
 - **[Frontend Coding Conventions (Dynstruct + MsgMesh)](./topic--frontend-conventions.md)** (reference) `conventions`, `dynstruct`, `msgmesh`, `theme`, `overlays`, `rules`
+- **[UI Internationalization Foundation (@actdim/ui-core/i18n)](./topic--i18n.md)** (reference) `i18n`, `localization`, `locale`, `useT`, `formatters`, `msgmesh`
 - **[Theme Tokens and the tw() Class Helper](./topic--theme-tokens.md)** (reference) `theme`, `design-tokens`, `tailwind`, `styling`, `mui`, `conventions`
 
 ---

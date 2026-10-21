@@ -11,4 +11,5 @@
 - [docs/topic--dependencies.md](docs/topic--dependencies.md): Dependencies & Submodules AI Documentation and Rules.
 - [docs/topic--developer-guide.md](docs/topic--developer-guide.md): @actdim/ui-core Developer & Consumer Integration Guide.
 - [docs/topic--frontend-conventions.md](docs/topic--frontend-conventions.md): Frontend Coding Conventions (Dynstruct + MsgMesh).
+- [docs/topic--i18n.md](docs/topic--i18n.md): UI Internationalization Foundation (@actdim/ui-core/i18n).
 - [docs/topic--theme-tokens.md](docs/topic--theme-tokens.md): Theme Tokens and the tw() Class Helper.
