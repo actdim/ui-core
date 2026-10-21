@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     type Component,
     type ComponentDef,
@@ -13,8 +13,16 @@ import { type MenuItemDef } from '@actdim/dynstruct-mui/Menu';
 import { type BaseAppMsgStruct } from '@actdim/dynstruct/appDomain/appContracts';
 import { type LayoutTier } from '../layout/layoutTypes';
 import { registerBackHandler, unregisterBackHandler } from '../layout/BackStackService';
-import { renderMenuIcon, useActionSheet, type ActionSheetStruct, type MenuItemAction } from './ActionSheet';
+import {
+    renderMenuIcon,
+    resolveDescriptorOrNode,
+    useActionSheet,
+    type ActionSheetStruct,
+    type MenuItemAction,
+} from './ActionSheet';
 import { themeVar, tw } from '../theme/tw';
+import { useT } from '../i18n/useT';
+import { type MessageDescriptor } from '../i18n/i18nTypes';
 
 export { type MenuItemAction } from './ActionSheet';
 
@@ -24,7 +32,7 @@ export type AdaptiveMenuProps = {
     tier: LayoutTier;
     anchorEl?: HTMLElement | null;
     anchorPosition?: { top: number; left: number };
-    title?: string;
+    title?: React.ReactNode | MessageDescriptor;
     actions: MenuItemAction[];
 };
 
@@ -39,7 +47,7 @@ export type AdaptiveMenuStruct<TMsg extends BaseAppMsgStruct = BaseAppMsgStruct>
             tier: LayoutTier;
             anchorEl?: HTMLElement | null;
             anchorPosition?: { top: number; left: number };
-            title?: string;
+            title?: React.ReactNode | MessageDescriptor;
             actions: MenuItemAction[];
         };
         actions: {
@@ -57,12 +65,15 @@ export const useAdaptiveMenu = (params: ComponentParams<AdaptiveMenuStruct>): Co
     let c: Component<AdaptiveMenuStruct>;
     let m: ComponentModel<AdaptiveMenuStruct>;
 
-    // id of the registered back handler while the menu is open (effects ignore a returned cleanup)
-    let backHandlerId: string | null = null;
+    const t = useT('ui-core');
+    const defaultBackHandlerId = React.useId();
+
+    // id of the registered back handler while the menu is open
+    const backHandlerIdRef = useRef<string | null>(null);
     const releaseBackHandler = () => {
-        if (backHandlerId) {
-            unregisterBackHandler(backHandlerId);
-            backHandlerId = null;
+        if (backHandlerIdRef.current) {
+            unregisterBackHandler(backHandlerIdRef.current);
+            backHandlerIdRef.current = null;
         }
     };
 
@@ -102,12 +113,13 @@ export const useAdaptiveMenu = (params: ComponentParams<AdaptiveMenuStruct>): Co
                 },
                 items: bind(() => {
                     const list: MenuItemDef[] = [];
-                    if (m.title) {
+                    const titleContent = resolveDescriptorOrNode(m.title, t);
+                    if (titleContent) {
                         list.push({
                             id: '__title',
                             label: (
                                 <span className={tw('text-caption font-strong text-fg-faint block truncate max-w-popup')}>
-                                    {m.title}
+                                    {titleContent}
                                 </span>
                             ),
                             disabled: true,
@@ -117,11 +129,12 @@ export const useAdaptiveMenu = (params: ComponentParams<AdaptiveMenuStruct>): Co
 
                     for (const action of m.actions) {
                         const isDanger = Boolean(action.danger || action.dangerous);
+                        const labelContent = resolveDescriptorOrNode(action.label, t);
                         list.push({
                             id: action.id,
                             label: (
                                 <span className={tw(isDanger ? 'text-danger' : 'text-fg-default')}>
-                                    {action.label}
+                                    {labelContent}
                                 </span>
                             ),
                             icon: renderMenuIcon(action.icon),
@@ -156,12 +169,13 @@ export const useAdaptiveMenu = (params: ComponentParams<AdaptiveMenuStruct>): Co
 
                     return;
                 }
-                if (backHandlerId) {
+                if (backHandlerIdRef.current) {
                     return;
                 }
-                backHandlerId = `menu-${Math.random().toString(36).slice(2, 9)}`;
+                const id = `menu-${defaultBackHandlerId}`;
+                backHandlerIdRef.current = id;
                 registerBackHandler({
-                    id: backHandlerId,
+                    id,
                     priority: 100,
                     handle: () => {
                         m.close();

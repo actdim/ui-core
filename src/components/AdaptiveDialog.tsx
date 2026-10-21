@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     type Component,
     type ComponentDef,
@@ -14,6 +14,9 @@ import { type LayoutTier, type UiLayoutMsgStruct, type LayoutMsgChannels } from 
 import { getCurrentLayout } from '../layout/LayoutService';
 import { registerBackHandler, unregisterBackHandler } from '../layout/BackStackService';
 import { themeVar, tw, type TwClasses } from '../theme/tw';
+import { useT } from '../i18n/useT';
+import { type MessageDescriptor } from '../i18n/i18nTypes';
+import { resolveDescriptorOrNode } from './ActionSheet';
 
 // Closing sets `open` to false: a parent observes it through a two-way binding of `open`
 // (`bindProp` / `bind(get, set)`; a React parent: `$events.onChangeOpen`). React content props (title, subtitle,
@@ -21,8 +24,8 @@ import { themeVar, tw, type TwClasses } from '../theme/tw';
 export type AdaptiveDialogProps = {
     open: boolean;
     onClose?: () => void;
-    title?: React.ReactNode;
-    subtitle?: React.ReactNode;
+    title?: React.ReactNode | MessageDescriptor;
+    subtitle?: React.ReactNode | MessageDescriptor;
     tier?: LayoutTier;
     fullScreen?: boolean;
     maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | false;
@@ -71,16 +74,19 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
     let c: Component<ImplStruct>;
     let m: ComponentModel<ImplStruct>;
 
+    const t = useT('ui-core');
+    const defaultBackHandlerId = React.useId();
+
     const isCompact = () => (m.fullScreen !== undefined ? m.fullScreen : m.currentTier === 'compact');
 
-    // id / priority of the registered back handler while the dialog is open (effects ignore a returned cleanup)
-    let backHandlerId: string | null = null;
-    let backHandlerPriority: number | null = null;
+    // id / priority of the registered back handler while the dialog is open
+    const backHandlerIdRef = useRef<string | null>(null);
+    const backHandlerPriorityRef = useRef<number | null>(null);
     const releaseBackHandler = () => {
-        if (backHandlerId) {
-            unregisterBackHandler(backHandlerId);
-            backHandlerId = null;
-            backHandlerPriority = null;
+        if (backHandlerIdRef.current) {
+            unregisterBackHandler(backHandlerIdRef.current);
+            backHandlerIdRef.current = null;
+            backHandlerPriorityRef.current = null;
         }
     };
 
@@ -125,7 +131,10 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
                         return undefined;
                     }
 
-                    if (!m.title) {
+                    const titleContent = resolveDescriptorOrNode(m.title, t);
+                    const subtitleContent = resolveDescriptorOrNode(m.subtitle, t);
+
+                    if (!titleContent) {
                         return undefined;
                     }
 
@@ -133,11 +142,11 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
                         <div className={tw('flex items-center justify-between w-full')}>
                             <div>
                                 <div className={tw('text-title text-fg-default')}>
-                                    {m.title}
+                                    {titleContent}
                                 </div>
-                                {m.subtitle && (
+                                {subtitleContent && (
                                     <div className={tw('text-caption text-fg-muted mt-micro')}>
-                                        {m.subtitle}
+                                        {subtitleContent}
                                     </div>
                                 )}
                             </div>
@@ -147,7 +156,8 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
                                     m.close();
                                 }}
                                 className={tw('p-tight rounded-control text-fg-faint hover:text-fg-muted hover:bg-surface-hover transition')}
-                                title='Close'
+                                title={t('dialog.close')}
+                                aria-label={t('dialog.close')}
                             >
                                 <span className={tw('iconify tabler--x text-title')} />
                             </button>
@@ -166,6 +176,9 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
             }),
             dialogContent: () => {
                 if (isCompact()) {
+                    const titleContent = resolveDescriptorOrNode(m.title, t);
+                    const subtitleContent = resolveDescriptorOrNode(m.subtitle, t);
+
                     return (
                         <div className={tw('flex flex-col h-full -m-loose bg-surface-dialog')}>
                             <div className={tw('flex items-center justify-between px-normal py-snug border-b border-line-default bg-surface-dialog sticky top-0 z-sticky shrink-0 pt-safe')}>
@@ -176,19 +189,20 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
                                             m.close();
                                         }}
                                         className={tw('p-snug rounded-control text-fg-muted hover:text-fg-default hover:bg-surface-hover transition min-w-control-md min-h-control-md flex items-center justify-center cursor-pointer')}
-                                        title='Close'
+                                        title={t('dialog.back')}
+                                        aria-label={t('dialog.back')}
                                     >
                                         <span className={tw('iconify tabler--arrow-left text-title')} />
                                     </button>
                                     <div className={tw('min-w-0 flex-1')}>
-                                        {m.title && (
+                                        {titleContent && (
                                             <h2 className={tw('text-body-lg font-strong text-fg-default truncate')}>
-                                                {m.title}
+                                                {titleContent}
                                             </h2>
                                         )}
-                                        {m.subtitle && (
+                                        {subtitleContent && (
                                             <p className={tw('text-caption text-fg-muted truncate')}>
-                                                {m.subtitle}
+                                                {subtitleContent}
                                             </p>
                                         )}
                                     </div>
@@ -236,16 +250,16 @@ export const useAdaptiveDialog = (params: ComponentParams<AdaptiveDialogStruct>)
 
                     return;
                 }
-                const id = m.backHandlerId || backHandlerId || `adaptive-dialog-${Math.random().toString(36).slice(2, 9)}`;
+                const id = m.backHandlerId || backHandlerIdRef.current || `adaptive-dialog-${defaultBackHandlerId}`;
                 const priority = m.backHandlerPriority ?? 100;
                 // the effect also re-runs on whatever the bound `open` getter reads: re-register only when the id or
                 // priority actually changed (keeps the handler's position in the back stack)
-                if (backHandlerId === id && backHandlerPriority === priority) {
+                if (backHandlerIdRef.current === id && backHandlerPriorityRef.current === priority) {
                     return;
                 }
                 releaseBackHandler();
-                backHandlerId = id;
-                backHandlerPriority = priority;
+                backHandlerIdRef.current = id;
+                backHandlerPriorityRef.current = priority;
                 registerBackHandler({
                     id,
                     priority,

@@ -1,0 +1,19 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back"
+  },
+  "dialog": {
+    "close": "Close",
+    "back": "Back"
+  },
+  "menu": {
+    "open": "Open menu",
+    "close": "Close menu"
+  },
+  "actionSheet": {
+    "cancel": "Cancel",
+    "close": "Close"
+  }
+}

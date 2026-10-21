@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
     type Component,
     type ComponentDef,
@@ -12,10 +12,12 @@ import { useDrawer, type DrawerStruct } from '@actdim/dynstruct-mui';
 import { type BaseAppMsgStruct } from '@actdim/dynstruct/appDomain/appContracts';
 import { registerBackHandler, unregisterBackHandler } from '../layout/BackStackService';
 import { themeVar, tw } from '../theme/tw';
+import { useT } from '../i18n/useT';
+import { type MessageDescriptor } from '../i18n/i18nTypes';
 
 export type MenuItemAction = {
     id: string;
-    label: string;
+    label: React.ReactNode | MessageDescriptor;
     // a string is an icon class list (`'iconify tabler--upload'`), anything else is rendered as is
     icon?: React.ReactNode;
     danger?: boolean;
@@ -27,7 +29,7 @@ export type MenuItemAction = {
 export type ActionSheetProps = {
     open: boolean;
     onClose?: () => void;
-    title?: string;
+    title?: React.ReactNode | MessageDescriptor;
     actions: MenuItemAction[];
 };
 
@@ -40,6 +42,26 @@ export function renderMenuIcon(icon: React.ReactNode): React.ReactNode {
     return icon;
 }
 
+function isMessageDescriptor(val: unknown): val is MessageDescriptor {
+    return (
+        typeof val === 'object' &&
+        val !== null &&
+        'key' in val &&
+        typeof (val as Record<string, unknown>).key === 'string'
+    );
+}
+
+export function resolveDescriptorOrNode(
+    val: React.ReactNode | MessageDescriptor | undefined,
+    t: (key: string, params?: Record<string, unknown>) => string,
+): React.ReactNode {
+    if (isMessageDescriptor(val)) {
+        return t(val.key, val.params) || val.fallback || val.key;
+    }
+
+    return val;
+}
+
 // Closing sets `open` to false: a parent observes it through a two-way binding of `open`
 // (`bindProp` / `bind(get, set)`; a React parent: `$events.onChangeOpen`).
 export type ActionSheetStruct<TMsg extends BaseAppMsgStruct = BaseAppMsgStruct> = ComponentStruct<
@@ -48,7 +70,7 @@ export type ActionSheetStruct<TMsg extends BaseAppMsgStruct = BaseAppMsgStruct> 
         props: {
             open: boolean;
             onClose?: () => void;
-            title?: string;
+            title?: React.ReactNode | MessageDescriptor;
             actions: MenuItemAction[];
         };
         actions: {
@@ -66,12 +88,15 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
     let c: Component<ActionSheetStruct>;
     let m: ComponentModel<ActionSheetStruct>;
 
-    // id of the registered back handler while the sheet is open (effects ignore a returned cleanup)
-    let backHandlerId: string | null = null;
+    const t = useT('ui-core');
+    const defaultBackHandlerId = React.useId();
+
+    // id of the registered back handler while the sheet is open
+    const backHandlerIdRef = useRef<string | null>(null);
     const releaseBackHandler = () => {
-        if (backHandlerId) {
-            unregisterBackHandler(backHandlerId);
-            backHandlerId = null;
+        if (backHandlerIdRef.current) {
+            unregisterBackHandler(backHandlerIdRef.current);
+            backHandlerIdRef.current = null;
         }
     };
 
@@ -111,21 +136,24 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
                 children: () => <c.children.DrawerContent />,
             }),
             drawerContent: () => {
+                const titleContent = resolveDescriptorOrNode(m.title, t);
+
                 return (
                     <div className={tw('flex flex-col')}>
                         <div className={tw('w-full flex items-center justify-center pt-normal pb-tight')}>
                             <div className={tw('w-control-md h-tight bg-line-strong rounded-full')} />
                         </div>
 
-                        {m.title && (
+                        {titleContent && (
                             <div className={tw('px-relaxed py-snug border-b border-line-default text-caption font-strong text-fg-muted truncate')}>
-                                {m.title}
+                                {titleContent}
                             </div>
                         )}
 
                         <div className={tw('py-tight')}>
                             {m.actions.map((action) => {
                                 const isDanger = Boolean(action.danger || action.dangerous);
+                                const labelContent = resolveDescriptorOrNode(action.label, t);
 
                                 return (
                                     <button
@@ -144,7 +172,7 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
                                             </span>
                                         )}
                                         <span className={tw('text-label truncate')}>
-                                            {action.label}
+                                            {labelContent}
                                         </span>
                                     </button>
                                 );
@@ -162,12 +190,13 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
 
                     return;
                 }
-                if (backHandlerId) {
+                if (backHandlerIdRef.current) {
                     return;
                 }
-                backHandlerId = `action-sheet-${Math.random().toString(36).slice(2, 9)}`;
+                const id = `action-sheet-${defaultBackHandlerId}`;
+                backHandlerIdRef.current = id;
                 registerBackHandler({
-                    id: backHandlerId,
+                    id,
                     priority: 100,
                     handle: () => {
                         m.close();

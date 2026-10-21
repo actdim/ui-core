@@ -16,8 +16,10 @@
     "include": [
         "src/**/*.ts",
         "src/**/*.tsx",
+        "src/**/*.json",
         "tests/**/*.ts",
         "tests/**/*.tsx",
+        "scripts/**/*.ts",
         "packageConfig.ts",
         "package.json",
         "postcss.ts",

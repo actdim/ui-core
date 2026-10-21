@@ -71,9 +71,19 @@ Standard architectural and coding conventions for applications and packages buil
 
 ---
 
+## 5. Internationalization Invariants (@actdim/ui-core/i18n)
+
+1. **No user-visible literals in JSX**: Hardcoded user-visible string literals in JSX, templates, or component state are strictly prohibited. All UI text must use translation keys via `useT('<ns>')` or `MessageDescriptor` (`{ key, params, fallback }`). See [UI Internationalization Guide](./topic--i18n.md).
+2. **No ad-hoc toLocaleString or unmemoized Intl**: Never use `Date.prototype.toLocaleString`, `toLocaleDateString`, `Number.prototype.toLocaleString`, or ad-hoc `Intl.*` constructors in features. Use the centralized memoized formatters from `@actdim/ui-core/i18n` (`formatDate`, `formatDateTime`, `formatNumber`, `formatBytes`, `formatDuration`, `formatRelative`, `formatList`).
+3. **UI Locale Separation**: Application UI language (`APP.LOCALE.*`) is strictly separated from content, study, and media languages.
+4. **Server Display Text Ban**: Backend APIs must never return human-facing display text as their contract. Servers return `errorCode` and `params`; client applications map error codes to localized messages.
+
+---
+
 ## Related Context
 
 - [Knowledge Base Index](./INDEX.md)
+- [UI Internationalization Foundation](./topic--i18n.md)
 - [Theme Tokens and tw() Class Helper](./topic--theme-tokens.md)
 - [Adaptive Overlays Guide](./topic--adaptive-overlays.md)
 - [Adaptive Layout and Back-Stack Navigation](./topic--adaptive-layout.md)

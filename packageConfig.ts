@@ -41,6 +41,10 @@ export default {
     },
     srcFiles: () => getSrcFiles(path.resolve(__dirname, 'src')),
     externals: (id: string) => {
+        if (id.startsWith('node:') || ['fs', 'path', 'url', 'crypto', 'os'].includes(id)) {
+            return true;
+        }
+
         return packages.some((pkg) => id === pkg || id.startsWith(`${pkg}/`));
     },
 };

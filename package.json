@@ -22,7 +22,8 @@
         "tailwind",
         "mui",
         "adaptive",
-        "overlays"
+        "overlays",
+        "i18n"
     ],
     "files": [
         "dist",
@@ -71,6 +72,14 @@
             "types": "./dist/components/index.d.ts",
             "import": "./dist/components/index.es.js"
         },
+        "./i18n": {
+            "types": "./dist/i18n/index.d.ts",
+            "import": "./dist/i18n/index.es.js"
+        },
+        "./i18n-tooling": {
+            "types": "./dist/i18n/tooling/index.d.ts",
+            "import": "./dist/i18n/tooling/index.es.js"
+        },
         "./*": {
             "types": "./dist/*.d.ts",
             "import": "./dist/*.es.js"
@@ -94,6 +103,7 @@
         "lint": "eslint \"./**/*.{ts,tsx}\" -f visualstudio --report-unused-disable-directives",
         "build": "tsc -b tsconfig.json --noEmit && vite build",
         "theme:gen": "node --experimental-strip-types --no-warnings postcss.ts",
+        "i18n:check": "node --experimental-strip-types --no-warnings scripts/i18n-check.ts",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "docs:dev": "vitepress dev docs",
         "docs:build": "vitepress build docs",
@@ -110,6 +120,7 @@
         "@emotion/react": ">=11.14.0",
         "@emotion/styled": ">=11.14.1",
         "@mui/material": ">=9.0.1",
+        "i18next": ">=24.0.0",
         "postcss": ">=8.5.0",
         "react": ">=19.2.0",
         "react-dom": ">=19.2.0"
@@ -118,6 +129,7 @@
         "@types/node": "^24.10.0",
         "@types/react": "^19.2.18",
         "@types/react-dom": "^19.2.7",
+        "i18next": "catalog:",
         "mermaid": "^11.4.1",
         "postcss": "^8.5.2",
         "typescript": "^5.9.3",

@@ -1,4 +1,6 @@
 import { defineConfig } from 'vite';
+import * as path from 'path';
+import * as fs from 'fs';
 import config from './packageConfig';
 import dts from 'vite-plugin-dts';
 import tsConfigPaths from 'vite-tsconfig-paths';
@@ -44,5 +46,15 @@ export default defineConfig({
             entryRoot: 'src',
             insertTypesEntry: true,
         }),
+        {
+            name: 'copy-locales',
+            closeBundle() {
+                const srcDir = path.resolve(__dirname, 'src/locales');
+                const destDir = path.resolve(__dirname, 'dist/locales');
+                if (fs.existsSync(srcDir)) {
+                    fs.cpSync(srcDir, destDir, { recursive: true });
+                }
+            },
+        },
     ],
 });
