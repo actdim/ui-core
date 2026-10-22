@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     createI18nRuntime,
+    getRuntimeRevision,
     registerResources,
+    subscribeToRuntime,
     t,
     translate,
     pseudoLocalize,
@@ -77,6 +79,19 @@ describe('i18nRuntime', () => {
         ).toBe('Dot Namespace Fallback');
 
         expect(translate({ key: 'test.greeting', params: { name: 'Ann' } })).toBe('Hello Ann!');
+    });
+
+    it('bumps the runtime revision and notifies subscribers when resources are registered', () => {
+        const listener = vi.fn();
+        const unsubscribe = subscribeToRuntime(listener);
+        const before = getRuntimeRevision();
+
+        registerResources('en', 'late', { title: 'Loaded later' });
+
+        expect(listener).toHaveBeenCalled();
+        expect(getRuntimeRevision()).toBeGreaterThan(before);
+        expect(t('late:title')).toBe('Loaded later');
+        unsubscribe();
     });
 
     it('transforms strings with pseudo-localization while preserving variables', () => {

@@ -8,7 +8,7 @@ import {
     applyLocaleToHtml,
     DEFAULT_LOCALE_STORAGE_KEY,
 } from '@/i18n/LocaleService';
-import { t } from '@/i18n/i18nRuntime';
+import { t, getRuntimeRevision, subscribeToRuntime } from '@/i18n/i18nRuntime';
 import { type MsgBus } from '@actdim/msgmesh/contracts';
 import { type I18nMsgStruct, type LocaleChangedPayload } from '@/i18n/i18nTypes';
 
@@ -236,6 +236,31 @@ describe('LocaleService in @actdim/ui-core', () => {
         expect(second.locale).not.toBe(first.locale);
         expect(getCurrentLocale()).toBe(second);
 
+        dispose();
+    });
+
+    it('notifies runtime subscribers after the new locale is visible via getCurrentLocale', async () => {
+        const { bus, trigger } = createMockBus();
+
+        const dispose = await initLocaleService(bus, {
+            supportedLocales: ['en', 'ru'],
+            fallbackLocale: 'en',
+        });
+
+        const target = getCurrentLocale().locale === 'ru' ? 'en' : 'ru';
+        const seenLocales: string[] = [];
+        const revisionBefore = getRuntimeRevision();
+        const unsubscribe = subscribeToRuntime(() => {
+            seenLocales.push(getCurrentLocale().locale);
+        });
+
+        trigger('APP.LOCALE.SET_PREFERENCE', { preference: target, source: 'user' });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        expect(seenLocales[seenLocales.length - 1]).toBe(target);
+        expect(getRuntimeRevision()).toBeGreaterThan(revisionBefore);
+
+        unsubscribe();
         dispose();
     });
 

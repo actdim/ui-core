@@ -9,8 +9,12 @@ let runtimeInstance: I18nInstance | null = null;
 let activeOptions: I18nServiceOptions | null = null;
 const registeredNamespaces = new Set<string>(['translation', 'ui-core']);
 const listeners = new Set<() => void>();
+// Bumped on every runtime change (language, loaded or registered resources); this is the useT snapshot,
+// because registering a namespace changes translations without changing the locale.
+let runtimeRevision = 0;
 
 function notifySubscribers(): void {
+    runtimeRevision++;
     for (const listener of listeners) {
         try {
             listener();
@@ -18,6 +22,15 @@ function notifySubscribers(): void {
             console.error('Error in i18n change listener:', err);
         }
     }
+}
+
+export function getRuntimeRevision(): number {
+    return runtimeRevision;
+}
+
+/** Notifies subscribers after state they read (e.g. the current locale) has changed outside i18next. */
+export function notifyRuntimeChanged(): void {
+    notifySubscribers();
 }
 
 export function subscribeToRuntime(callback: () => void): () => void {
@@ -67,6 +80,8 @@ export function registerResources(
     const inst = getI18nInstance();
     inst.addResourceBundle(locale, ns, data, true, true);
     registeredNamespaces.add(ns);
+    // addResourceBundle does not emit i18next 'loaded', so components must be told explicitly
+    notifySubscribers();
 }
 
 export async function ensureNamespaces(

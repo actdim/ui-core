@@ -23,6 +23,7 @@ import {
     createI18nRuntime,
     getI18nInstance,
     ensureNamespaces,
+    notifyRuntimeChanged,
     registerResources,
 } from './i18nRuntime';
 import uiCoreEn from '../locales/en/ui-core.json';
@@ -128,6 +129,8 @@ export const updateLocalePreference = async (
 
     const dir = resolveDirection(targetLocale);
     cachedLocale = Object.freeze<LocaleInfo>({ preference, locale: targetLocale, dir });
+    // languageChanged fired before cachedLocale was replaced; notify again so useLocale sees the new value
+    notifyRuntimeChanged();
 
     // 4. Apply to HTML document
     applyLocaleToHtml(targetLocale, dir);
@@ -196,6 +199,7 @@ export const initLocaleService = async (
 
     const dir = resolveDirection(targetLocale);
     cachedLocale = Object.freeze<LocaleInfo>({ preference, locale: targetLocale, dir });
+    notifyRuntimeChanged();
 
     applyLocaleToHtml(targetLocale, dir);
 

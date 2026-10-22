@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { type LocaleInfo } from './i18nTypes';
-import { subscribeToRuntime, t } from './i18nRuntime';
+import { getRuntimeRevision, subscribeToRuntime, t } from './i18nRuntime';
 import { getCurrentLocale } from './LocaleService';
 
 export function useLocale(): LocaleInfo {
@@ -14,7 +14,7 @@ export function useLocale(): LocaleInfo {
 export type TFunction = (key: string, params?: Record<string, unknown>) => string;
 
 export function useT(ns?: string): TFunction {
-    useLocale();
+    useSyncExternalStore(subscribeToRuntime, getRuntimeRevision, getRuntimeRevision);
 
     return (key: string, params?: Record<string, unknown>): string => {
         const options: Record<string, unknown> = { ...(params || {}) };
