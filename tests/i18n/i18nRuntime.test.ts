@@ -68,6 +68,17 @@ describe('i18nRuntime', () => {
         ).toBe('Custom Fallback');
     });
 
+    it('uses fallback for a missing dot-namespaced key instead of the namespace-stripped key', () => {
+        expect(
+            translate({
+                key: 'test.errors.missingKey',
+                fallback: 'Dot Namespace Fallback',
+            }),
+        ).toBe('Dot Namespace Fallback');
+
+        expect(translate({ key: 'test.greeting', params: { name: 'Ann' } })).toBe('Hello Ann!');
+    });
+
     it('transforms strings with pseudo-localization while preserving variables', () => {
         const source = 'Hello {{name}}!';
         const pseudo = pseudoLocalize(source);

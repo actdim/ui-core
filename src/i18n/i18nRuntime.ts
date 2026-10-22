@@ -202,9 +202,18 @@ export function translate(descriptor: MessageDescriptor): string {
 
     const translated = t(descriptor.key, descriptor.params);
 
+    // For dot-namespaced keys ('library.errors.x') t() resolves the namespace, so a missing key comes back
+    // without it ('errors.x').
+    const dotIndex = descriptor.key.indexOf('.');
+    const keyWithoutDotNs =
+        !descriptor.key.includes(':') && dotIndex > 0 && registeredNamespaces.has(descriptor.key.slice(0, dotIndex))
+            ? descriptor.key.slice(dotIndex + 1)
+            : undefined;
+
     // If key not found (returns key itself) and fallback provided
     if (
         (translated === descriptor.key ||
+            translated === keyWithoutDotNs ||
             translated === descriptor.key.split('.').pop() ||
             translated === descriptor.key.split(':').pop()) &&
         descriptor.fallback

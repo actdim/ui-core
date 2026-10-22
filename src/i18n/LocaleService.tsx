@@ -36,11 +36,13 @@ let activeMsgBus: MsgBus<I18nMsgStruct> | null = null;
 let activeOptions: I18nServiceOptions | null = null;
 let switchSequence = 0;
 
-let cachedLocale: LocaleInfo = {
+// Replaced as a whole (never mutated) on every locale change, so the reference itself is the
+// useSyncExternalStore snapshot: it must stay identical between changes.
+let cachedLocale: Readonly<LocaleInfo> = Object.freeze<LocaleInfo>({
     preference: 'system',
     locale: 'en',
     dir: 'ltr',
-};
+});
 
 export const getStoredLocalePreference = (
     storageKey: string = activeStorageKey,
@@ -77,7 +79,7 @@ export const setStoredLocalePreference = (
 };
 
 export const getCurrentLocale = (): LocaleInfo => {
-    return { ...cachedLocale };
+    return cachedLocale;
 };
 
 export const applyLocaleToHtml = (locale: LocaleCode, dir: LocaleDirection): void => {
@@ -125,7 +127,7 @@ export const updateLocalePreference = async (
     setStoredLocalePreference(preference, activeStorageKey);
 
     const dir = resolveDirection(targetLocale);
-    cachedLocale = { preference, locale: targetLocale, dir };
+    cachedLocale = Object.freeze<LocaleInfo>({ preference, locale: targetLocale, dir });
 
     // 4. Apply to HTML document
     applyLocaleToHtml(targetLocale, dir);
@@ -193,7 +195,7 @@ export const initLocaleService = async (
     await inst.changeLanguage(targetLocale);
 
     const dir = resolveDirection(targetLocale);
-    cachedLocale = { preference, locale: targetLocale, dir };
+    cachedLocale = Object.freeze<LocaleInfo>({ preference, locale: targetLocale, dir });
 
     applyLocaleToHtml(targetLocale, dir);
 
@@ -251,7 +253,8 @@ export const useLocaleService = (
 ): Component<LocaleServiceStruct> => {
     let c: Component<LocaleServiceStruct>;
 
-    const initialLocale = getCurrentLocale();
+    // Component props are mutable model state; the shared snapshot is frozen.
+    const initialLocale: LocaleInfo = { ...getCurrentLocale() };
 
     const def: ComponentDef<LocaleServiceStruct> = {
         props: initialLocale,

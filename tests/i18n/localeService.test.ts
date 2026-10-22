@@ -213,6 +213,32 @@ describe('LocaleService in @actdim/ui-core', () => {
         dispose();
     });
 
+    it('returns a referentially stable locale snapshot between changes (useSyncExternalStore contract)', async () => {
+        const { bus, trigger } = createMockBus();
+
+        const dispose = await initLocaleService(bus, {
+            supportedLocales: ['en', 'ru'],
+            fallbackLocale: 'en',
+        });
+
+        const first = getCurrentLocale();
+        expect(getCurrentLocale()).toBe(first);
+        expect(Object.isFrozen(first)).toBe(true);
+
+        trigger('APP.LOCALE.SET_PREFERENCE', {
+            preference: first.locale === 'ru' ? 'en' : 'ru',
+            source: 'user',
+        });
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        const second = getCurrentLocale();
+        expect(second).not.toBe(first);
+        expect(second.locale).not.toBe(first.locale);
+        expect(getCurrentLocale()).toBe(second);
+
+        dispose();
+    });
+
     it('stops listening when disposer is called', async () => {
         const { bus, sentMessages, trigger } = createMockBus();
 
