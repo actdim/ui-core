@@ -6,6 +6,7 @@ dist/
 .stylelintcache
 *.log
 .along/diagnostics/
+.along/.session/
 .along/dashboard.html
 .along/DASHBOARD.md
 # VitePress

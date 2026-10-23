@@ -13,3 +13,4 @@ _`<YYYY-MM-DD> - <slug> - <agent> - <summary> - <relative link>`_
 2026-10-21 - i18n-service - antigravity - feat: LocaleService on MsgMesh, typed t(), formatters, ui-core namespace - [Session Log](./SESSIONS/2026/2026-10-21--i18n-service.md)
 2026-10-22 - locale-snapshot-stability - claude-code - Stable getCurrentLocale snapshot (no useSyncExternalStore render loop) and translate() fallback for dot-namespaced keys - [Session Log](./SESSIONS/2026/2026-10-22--locale-snapshot-stability.md)
 2026-10-23 - i18n-rerender-on-resources - claude-code - useT re-renders on runtime revision (namespace registration, locale change); render tests in happy-dom - [Session Log](./SESSIONS/2026/2026-10-23--i18n-rerender-on-resources.md)
+2026-10-24 - fix-ci-catalog-dependency - antigravity - Replace catalog: dependency for i18next with semver range - [Session Log](./SESSIONS/2026/2026-10-24--fix-ci-catalog-dependency.md)
