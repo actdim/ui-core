@@ -9,7 +9,8 @@ import {
 import { toReact, useComponent } from '@actdim/dynstruct/componentModel/react/hooks';
 import { bindProp } from '@actdim/dynstruct/componentModel/core';
 import { useDrawer, type DrawerStruct } from '@actdim/dynstruct-mui';
-import { type BaseAppMsgStruct } from '@actdim/dynstruct/appDomain/appContracts';
+import { type BaseAppMsgStruct, type BaseAppMsgChannels } from '@actdim/dynstruct/appDomain/appContracts';
+import { handleNavLinkClick } from '@actdim/dynstruct/services/react/NavLink';
 import { registerBackHandler, unregisterBackHandler } from '../layout/BackStackService';
 import { themeVar, tw } from '../theme/tw';
 import { useT } from '../i18n/useT';
@@ -23,7 +24,9 @@ export type MenuItemAction = {
     danger?: boolean;
     dangerous?: boolean;
     disabled?: boolean;
-    onClick: () => void;
+    onClick?: (e?: React.MouseEvent<HTMLElement>) => void;
+    /** Route link: rendered as `<a href>`; a plain click navigates in place, modified / middle click opens natively */
+    href?: string;
 };
 
 export type ActionSheetProps = {
@@ -81,6 +84,10 @@ export type ActionSheetStruct<TMsg extends BaseAppMsgStruct = BaseAppMsgStruct> 
             drawerContent: React.FC;
         };
         effects: 'backHandler';
+        msgScope: {
+            // href actions navigate through the bus
+            publish: BaseAppMsgChannels<'APP.NAV.GOTO'>;
+        };
     }
 >;
 
@@ -154,18 +161,9 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
                             {m.actions.map((action) => {
                                 const isDanger = Boolean(action.danger || action.dangerous);
                                 const labelContent = resolveDescriptorOrNode(action.label, t);
-
-                                return (
-                                    <button
-                                        key={action.id}
-                                        type='button'
-                                        disabled={action.disabled}
-                                        onClick={() => {
-                                            action.onClick();
-                                            m.close();
-                                        }}
-                                        className={tw('w-full min-h-control-lg px-loose flex items-center gap-normal text-left transition hover:bg-surface-hover disabled:opacity-disabled disabled:cursor-not-allowed', isDanger ? 'text-danger' : 'text-fg-default')}
-                                    >
+                                const className = tw('w-full min-h-control-lg px-loose flex items-center gap-normal text-left transition hover:bg-surface-hover disabled:opacity-disabled disabled:cursor-not-allowed', isDanger ? 'text-danger' : 'text-fg-default');
+                                const content = (
+                                    <>
                                         {action.icon && (
                                             <span className={tw('text-title shrink-0', isDanger ? 'text-danger' : 'text-fg-muted')}>
                                                 {renderMenuIcon(action.icon)}
@@ -174,6 +172,38 @@ export const useActionSheet = (params: ComponentParams<ActionSheetStruct>): Comp
                                         <span className={tw('text-label truncate')}>
                                             {labelContent}
                                         </span>
+                                    </>
+                                );
+
+                                if (action.href && !action.disabled) {
+                                    return (
+                                        <a
+                                            key={action.id}
+                                            href={action.href}
+                                            onClick={(e) => {
+                                                action.onClick?.(e);
+                                                handleNavLinkClick(e, c.msgBus, action.href);
+                                                m.close();
+                                            }}
+                                            className={className}
+                                        >
+                                            {content}
+                                        </a>
+                                    );
+                                }
+
+                                return (
+                                    <button
+                                        key={action.id}
+                                        type='button'
+                                        disabled={action.disabled}
+                                        onClick={(e) => {
+                                            action.onClick?.(e);
+                                            m.close();
+                                        }}
+                                        className={className}
+                                    >
+                                        {content}
                                     </button>
                                 );
                             })}

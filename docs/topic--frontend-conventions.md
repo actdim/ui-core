@@ -58,6 +58,13 @@ Standard architectural and coding conventions for applications and packages buil
    - `out` - provider responses and broadcast events (`msgBroker.subscribe`).
    - `ex` - fire-and-forget commands.
 3. **Payloads through `c.msgBus`** are normalized (observables -> plain values); class instances (`File`, `Blob`, `Date`) are passed by reference.
+4. **Route navigation controls are links**: a control whose action is "go to a route" renders a real `<a href>` so
+   middle-click, Ctrl/Cmd+click and "open in new tab" work. Use `href` on dynstruct-mui `Button` / `IconButton` /
+   list and menu items, `href` on `MenuItemAction` (`AdaptiveMenu`, `ActionSheet`), `NavLink` or
+   `createNavLinkClick(c.msgBus, href)` on a plain `<a>` (`@actdim/dynstruct/services/react/NavLink`). A plain left
+   click is intercepted and sent as `APP.NAV.GOTO {url}` (no reload); modified and middle clicks are left to the
+   browser. Side effects of an in-place navigation (closing a dialog or drawer) go into `onNavigate`.
+   Programmatic `APP.NAV.GOTO` stays for URL-state sync, redirects (auth, after save) and non-control flows.
 
 ---
 

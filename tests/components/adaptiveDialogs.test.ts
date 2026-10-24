@@ -210,10 +210,10 @@ describe('Adaptive Dialogs, Menus & BackStack Handling', () => {
             expect(actions[0].danger).toBeUndefined();
             expect(actions[1].danger).toBe(true);
 
-            actions[0].onClick();
+            actions[0].onClick?.();
             expect(clickedAction).toBe('edit');
 
-            actions[1].onClick();
+            actions[1].onClick?.();
             expect(clickedAction).toBe('delete');
         });
 

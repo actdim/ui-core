@@ -139,8 +139,9 @@ export const useAdaptiveMenu = (params: ComponentParams<AdaptiveMenuStruct>): Co
                             ),
                             icon: renderMenuIcon(action.icon),
                             disabled: action.disabled,
-                            onClick: () => {
-                                action.onClick();
+                            href: action.href,
+                            onClick: (e) => {
+                                action.onClick?.(e);
                                 m.close();
                             },
                         });
