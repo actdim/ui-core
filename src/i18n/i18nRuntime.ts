@@ -1,4 +1,5 @@
 import i18next, { type i18n as I18nInstance } from 'i18next';
+import { fromExternalStore } from '@actdim/dynstruct/componentModel/core';
 import {
     type LocaleCode,
     type MessageDescriptor,
@@ -39,6 +40,13 @@ export function subscribeToRuntime(callback: () => void): () => void {
     return () => {
         listeners.delete(callback);
     };
+}
+
+const readRuntimeRevision = fromExternalStore(subscribeToRuntime, getRuntimeRevision, 'i18nRuntime');
+
+/** Makes dynstruct views and bindings that translate re-run on language change or namespace registration. */
+export function trackI18n(): void {
+    readRuntimeRevision();
 }
 
 const ACCENT_MAP: Record<string, string> = {
@@ -165,6 +173,7 @@ export function getI18nInstance(): I18nInstance {
 }
 
 export function t(key: string, params?: Record<string, unknown>): string {
+    trackI18n();
     const inst = getI18nInstance();
     if (!key) {
         return '';

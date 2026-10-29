@@ -1,7 +1,7 @@
 # Active Issues
 
 ## Active
-<!-- No active issues -->
+- [ ] `(bug)` [reactive-t-in-views](ISSUES/bug--reactive-t-in-views.md) - plan ready
 
 ## Backlog
 - [ ] `(task)` [agent-native-tokens-and-rules](ISSUES/task--agent-native-tokens-and-rules.md)

@@ -4,7 +4,7 @@ slug: INDEX
 title: '@actdim/ui-core - Knowledge Base Topic Index'
 type: index
 created: 2026-10-15
-updated: 2026-10-24
+updated: 2026-10-28
 tags: [index, kb, topics, map]
 ---
 
@@ -21,6 +21,8 @@ flowchart TD
     INDEX --> T_ADAPTIVE_LAYOUT
     T_ADAPTIVE_OVERLAYS["Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu)"]
     INDEX --> T_ADAPTIVE_OVERLAYS
+    T_ALONG_PROTOCOL["Along Protocol Reference"]
+    INDEX --> T_ALONG_PROTOCOL
     T_DEPENDENCIES["Dependencies & Submodules AI Documentation and Rules"]
     INDEX --> T_DEPENDENCIES
     T_DEVELOPER_GUIDE["@actdim/ui-core Developer & Consumer Integration Guide"]
@@ -43,6 +45,7 @@ flowchart TD
 
 - **[Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService)](./topic--adaptive-layout.md)** (reference) `layout`, `tiers`, `safe-area`, `backstack`, `navigation`, `dynstruct`, `msgmesh`
 - **[Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu)](./topic--adaptive-overlays.md)** (reference) `overlays`, `dialogs`, `drawers`, `menus`, `backstack`, `dynstruct`
+- **[Along Protocol Reference](./topic--along-protocol.md)** (reference) `protocol`, `agents-md`, `checklist`, `routing`, `concurrency`, `along-team`, `conventions`
 - **[Dependencies & Submodules AI Documentation and Rules](./topic--dependencies.md)** (topic) `dependencies`, `ai-context`, `submodules`, `vendor`, `rules`
 - **[@actdim/ui-core Developer & Consumer Integration Guide](./topic--developer-guide.md)** (guide) `developer-guide`, `integration`, `adoption`, `migration`, `theming`, `tailwind`, `dynstruct`, `overlays`
 - **[Frontend Coding Conventions (Dynstruct + MsgMesh)](./topic--frontend-conventions.md)** (reference) `conventions`, `dynstruct`, `msgmesh`, `theme`, `overlays`, `rules`

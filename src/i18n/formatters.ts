@@ -1,5 +1,5 @@
 import { type LocaleCode } from './i18nTypes';
-import { getI18nInstance } from './i18nRuntime';
+import { getI18nInstance, trackI18n } from './i18nRuntime';
 
 function getActiveLocale(locale?: LocaleCode): LocaleCode {
     if (locale) {
@@ -7,6 +7,7 @@ function getActiveLocale(locale?: LocaleCode): LocaleCode {
     }
 
     try {
+        trackI18n();
         const inst = getI18nInstance();
         if (inst && inst.language) {
             return inst.language;

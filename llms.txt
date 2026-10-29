@@ -8,6 +8,7 @@
 - [docs/INDEX.md](docs/INDEX.md): Central Knowledge Base topic catalog.
 - [docs/topic--adaptive-layout.md](docs/topic--adaptive-layout.md): Adaptive Layout and Back-Stack Navigation (LayoutService, BackStackService).
 - [docs/topic--adaptive-overlays.md](docs/topic--adaptive-overlays.md): Adaptive Overlays (AdaptiveDialog, ActionSheet, AdaptiveMenu).
+- [docs/topic--along-protocol.md](docs/topic--along-protocol.md): Along Protocol Reference.
 - [docs/topic--dependencies.md](docs/topic--dependencies.md): Dependencies & Submodules AI Documentation and Rules.
 - [docs/topic--developer-guide.md](docs/topic--developer-guide.md): @actdim/ui-core Developer & Consumer Integration Guide.
 - [docs/topic--frontend-conventions.md](docs/topic--frontend-conventions.md): Frontend Coding Conventions (Dynstruct + MsgMesh).
