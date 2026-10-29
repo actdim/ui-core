@@ -1,6 +1,6 @@
 {
     "name": "@actdim/ui-core",
-    "version": "1.10.0",
+    "version": "1.10.1",
     "description": "Shared UI foundation, theme system, design tokens, and Dynstruct component conventions for Actdim applications",
     "author": "Pavel Borodaev",
     "license": "MIT",
@@ -114,9 +114,9 @@
         "tailwind-merge": "^3.6.0"
     },
     "peerDependencies": {
-        "@actdim/dynstruct": ">=1.10.0",
-        "@actdim/dynstruct-mui": ">=1.10.0",
-        "@actdim/msgmesh": ">=1.10.0",
+        "@actdim/dynstruct": ">=1.10.1",
+        "@actdim/dynstruct-mui": ">=1.10.1",
+        "@actdim/msgmesh": ">=1.10.1",
         "@emotion/react": ">=11.14.0",
         "@emotion/styled": ">=11.14.1",
         "@mui/material": ">=9.0.1",
