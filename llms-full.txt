@@ -988,6 +988,27 @@ const t = useAppT('common');
 t('confirm'); // Type-checked: typos produce compile-time errors!
 ```
 
+### In dynstruct components
+
+In dynstruct components, `t()` (and formatters like `formatNumber`, `formatDate`) is reactive inside `view`, bindings (`bind(() => t(...))`), computed property getters, and effects. It automatically registers a dependency on the i18n runtime revision via `fromExternalStore`:
+
+```typescript
+import { t } from '@actdim/ui-core/i18n';
+import { bind } from '@actdim/dynstruct/componentModel/core';
+
+// In def:
+view: () => <span>{t('common.save')}</span>,
+children: {
+    child: useChild({
+        label: bind(() => t('common.cancel')), // Follows language changes live
+    }),
+},
+```
+
+A `t()` result passed as a plain parameter to a hook-constructor (e.g. `label: t('common.cancel')`) or stored as a static prop default is frozen at creation time. Always wrap translated parameters with `bind(() => t(...))` or translate in `view` / computed getters.
+
+Plain React components continue using `useT` and `useLocale`.
+
 ---
 
 ## 5. Formatters

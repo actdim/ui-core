@@ -3,7 +3,8 @@ protocol: along
 protocol_version: "4.5.4"
 slug: reactive-t-in-views
 type: bug
-status: in-progress
+status: done
+completed: 2026-10-29
 priority: high
 created: 2026-10-28
 updated: 2026-10-29
