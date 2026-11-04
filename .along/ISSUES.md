@@ -4,7 +4,9 @@
 <!-- No active issues -->
 
 ## Backlog
+- [ ] `(bug)` [use-typed-t-return-type](ISSUES/bug--use-typed-t-return-type.md) - plan ready
 - [ ] `(task)` [agent-native-tokens-and-rules](ISSUES/task--agent-native-tokens-and-rules.md)
+- [ ] `(task)` [drop-dist-paths](ISSUES/task--drop-dist-paths.md) - plan ready
 
 ## Done (recent)
 - [x] `(bug)` [reactive-t-in-views](ISSUES/done/bug--reactive-t-in-views.md)
