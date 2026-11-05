@@ -15,3 +15,4 @@ _`<YYYY-MM-DD> - <slug> - <agent> - <summary> - <relative link>`_
 2026-10-23 - i18n-rerender-on-resources - claude-code - useT re-renders on runtime revision (namespace registration, locale change); render tests in happy-dom - [Session Log](./SESSIONS/2026/2026-10-23--i18n-rerender-on-resources.md)
 2026-10-24 - fix-ci-catalog-dependency - antigravity - Replace catalog: dependency for i18next with semver range - [Session Log](./SESSIONS/2026/2026-10-24--fix-ci-catalog-dependency.md)
 2026-10-29 - reactive-t-in-views - antigravity - Make t() and formatters reactive in dynstruct views - [Session Log](./SESSIONS/2026/2026-10-29--reactive-t-in-views.md)
+2026-11-05 - drop-dist-paths - antigravity - dynstruct-mui types through exports, no paths to dist - [Session Log](./SESSIONS/2026/2026-11-05--drop-dist-paths.md)

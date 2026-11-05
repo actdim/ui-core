@@ -3,10 +3,11 @@ protocol: along
 protocol_version: "4.6.0"
 slug: drop-dist-paths
 type: task
-status: open
+status: done
+completed: 2026-11-05
 priority: medium
 created: 2026-11-03
-updated: 2026-11-04
+updated: 2026-11-05
 agent: claude-code
 tags: [typescript, tsconfig, packaging]
 parent: task--package-exports-and-paths
@@ -31,5 +32,5 @@ because dynstruct-mui had no `"."` export. The path reaches outside this reposit
   monorepo release step); until then only the Mempart workspace build is verified.
 
 ## Acceptance Criteria
-- [ ] No `paths` entry points to another package's `dist`.
-- [ ] Automated checks passing (`pnpm --filter @actdim/ui-core build`, `test`, `lint`).
+- [x] No `paths` entry points to another package's `dist`.
+- [x] Automated checks passing (`pnpm --filter @actdim/ui-core build`, `test`, `lint`).
