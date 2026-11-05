@@ -35,9 +35,7 @@
         "noFallthroughCasesInSwitch": true,
         "rootDir": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "@actdim/dynstruct-mui": ["../dynstruct-mui/dist/index.d.ts"],
-            "@actdim/dynstruct-mui/*": ["../dynstruct-mui/dist/*.d.ts"]
+            "@/*": ["./src/*"]
         },
         "composite": true,
         "importHelpers": true
