@@ -3,10 +3,11 @@ protocol: along
 protocol_version: "4.6.0"
 slug: use-typed-t-return-type
 type: bug
-status: open
+status: done
+completed: 2026-11-05
 priority: high
 created: 2026-11-03
-updated: 2026-11-04
+updated: 2026-11-05
 agent: claude-code
 tags: [i18n, typescript, performance]
 parent: task--app-core-extraction
@@ -34,6 +35,6 @@ union (Mempart webapp typecheck does not finish). Plural keys (`items_one`, `ite
 - REQ-5: Docs (`docs/topic--i18n.md` section 4) show `TypedT` for helpers and plural base keys.
 
 ## Acceptance Criteria
-- [ ] Type tests green (`tsc -b tsconfig.json`), runtime tests green (`pnpm --filter @actdim/ui-core test`).
-- [ ] `dist/i18n/useT.d.ts` contains `UseTypedT<TResources>` in the `createTypedT` declaration; size recorded before/after.
-- [ ] Lint and build green.
+- [x] Type tests green (`tsc -b tsconfig.json`), runtime tests green (`pnpm --filter @actdim/ui-core test`).
+- [x] `dist/i18n/useT.d.ts` contains `UseTypedT<TResources>` in the `createTypedT` declaration; size recorded before/after.
+- [x] Lint and build green.

@@ -995,6 +995,21 @@ const t = useAppT('common');
 t('confirm'); // Type-checked: typos produce compile-time errors!
 ```
 
+Do not annotate the hook type explicitly; let TypeScript infer `UseTypedT<TResources>` from `createTypedT`.
+
+When passing `t` to helper functions or component props, use the exported `TypedT` type:
+
+```typescript
+import type { TypedT } from '@actdim/ui-core/i18n';
+import type enResources from '@/locales/en';
+
+export function formatPageTitle(t: TypedT<typeof enResources, 'pages'>): string {
+    return t('header.title');
+}
+```
+
+Plural keys are called by their base key (`t('items', { count })`), and `TranslationKey` automatically accepts the base key when `_zero`, `_one`, `_two`, `_few`, `_many`, or `_other` variants exist.
+
 ### In dynstruct components
 
 In dynstruct components, `t()` (and formatters like `formatNumber`, `formatDate`) is reactive inside `view`, bindings (`bind(() => t(...))`), computed property getters, and effects. It automatically registers a dependency on the i18n runtime revision via `fromExternalStore`:
