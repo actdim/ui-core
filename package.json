@@ -80,6 +80,10 @@
             "types": "./dist/i18n/tooling/index.d.ts",
             "import": "./dist/i18n/tooling/index.es.js"
         },
+        "./theme-tooling": {
+            "types": "./dist/theme/tooling/index.d.ts",
+            "import": "./dist/theme/tooling/index.es.js"
+        },
         "./*": {
             "types": "./dist/*.d.ts",
             "import": "./dist/*.es.js"
@@ -123,7 +127,8 @@
         "i18next": ">=24.0.0",
         "postcss": ">=8.5.0",
         "react": ">=19.2.0",
-        "react-dom": ">=19.2.0"
+        "react-dom": ">=19.2.0",
+        "vite": ">=7.0.0"
     },
     "devDependencies": {
         "@types/node": "^24.10.0",
@@ -140,5 +145,13 @@
         "vitepress": "^1.6.4",
         "vitepress-plugin-mermaid": "^2.0.17",
         "vitest": "^4.0.18"
+    },
+    "peerDependenciesMeta": {
+        "@actdim/dynstruct-mui": {
+            "optional": true
+        },
+        "vite": {
+            "optional": true
+        }
     }
 }

@@ -22,10 +22,13 @@ typed `tw()` helper, which rejects anything else at compile time.
 | --- | --- |
 | `src/theme/theme.css` | Source of truth: every token with a description, `Based on` / `Replaces` per scale, a TOKEN TABLE, `.dark` and `[data-tier="compact"]` overrides, tier variants, `focus-ring` utility, `:focus-visible` base style. |
 | `src/theme/theme.generated.ts` | Generated from theme.css: `themeTokens` (CSS variable, value, per-mode values, sub-properties), `themeUtilities`, `themeVariants`. Committed. Do not edit. |
+| `src/theme/tooling/` | Token parsing, rendering, and generator engine (`parseTheme`, `renderTheme`, `generate`, `themeTokensPlugin`). Exported via `./theme-tooling`. |
+| `src/theme/themeKit.ts` | Extensible theme kit factory (`createThemeKit`, `ThemeKit<T>`, `ThemeTokenSet`, `ScaleNames`). |
+| `src/theme/themeChrome.ts` | Browser chrome meta colors (`themeChromeColors`: `#ffffff` light, `#0f172a` dark). |
 | `src/theme/tw.ts` | `tw()`, `mergeClasses()`, `TwClasses`, scale types (`ThemeColor`, `ThemeSpacing`, ...), tailwind-merge config. |
 | `src/theme/tw.typecheck.ts` | Compile-time tests of the class validation (run by `tsc -b`). |
 | `src/theme/themeRuntime.ts` | Typed runtime contract for getting, setting, resetting, and batch applying CSS variables on `:root` or scoped elements (`themeRuntime`, `themeCssVars`). |
-| `postcss.ts` | The generator (`pnpm theme:gen`). |
+| `postcss.ts` | Thin CLI / PostCSS wrapper around `src/theme/tooling` (`pnpm theme:gen`). |
 | `src/theme/muiTheme.ts` | MUI theme built from the same tokens (palette, radius, font, zIndex). |
 
 ## How tokens become classes
@@ -67,6 +70,15 @@ variable prefix is a Tailwind namespace and decides which classes exist:
 | State opacity | disabled, muted | `opacity-disabled` |
 | Variants | dark, compact, medium, expanded | `compact:hidden` |
 
+## App Token Layer
+
+Applications can extend core tokens without modifying `@actdim/ui-core`:
+
+1. **Declare in App CSS**: Place domain or application tokens in an app CSS file (e.g. `src/theme/app-theme.css`) using `@theme static { ... }` blocks and optional mode overrides (`.dark`).
+2. **Compile-Time Generator**: Use `themeTokensPlugin({ appCssFile, outFile })` from `@actdim/ui-core/theme-tooling` in `vite.config.ts`, or call `generateAppThemeTokens({ appCssFile, outFile })`.
+3. **Additive Invariant**: App tokens are strictly additive. Redefining a core token without `allowCoreOverrides: true` throws an error. Defining mode overrides in `.dark` without a matching `@theme` token also throws an error.
+4. **Typed Theme Kit**: Combine core and app tokens with `createThemeKit(appThemeTokens)` from `@actdim/ui-core/theme`. The returned `tw` validates both core and app classes with full IDE autocompletion and compile-time rejection.
+
 ## MUI Theme Integration and styleOverrides Architecture
 
 MUI (`@mui/material`) is used exclusively for headless accessibility, portals, and low-level interactive primitives (dialogs, drawers, popovers, touch targets). It is NOT used as an application styling engine.
@@ -104,7 +116,7 @@ In `src/theme/muiTheme.ts`, `styleOverrides` serve as a one-time infrastructure 
 1. **System Resolution**: `resolveThemeMode(preference, systemMode)` resolves `'system'` to the current OS setting (`matchMedia('(prefers-color-scheme: dark)')`).
 2. **DOM Synchronization**:
    - `applyThemeToHtml(mode)`: Toggles class `.dark` on `document.documentElement` and sets `data-theme="dark" | "light"`.
-   - `applyThemeToMeta(mode)`: Updates `<meta name="theme-color">` to match the background surface token (`#f8fafc` for light, `#020617` for dark).
+   - `applyThemeToMeta(mode)`: Updates `<meta name="theme-color">` to match browser chrome color (`#ffffff` for light, `#0f172a` for dark via `themeChromeColors`).
 3. **MsgMesh Integration**:
    - `APP.THEME.CHANGED`: Broadcasts `{ mode, preference, muiTheme }` to subscribed components (used by Dynstruct root to update MUI `ThemeProvider`).
    - `APP.THEME.SET_PREFERENCE`: Inbound command accepting `{ preference }`.

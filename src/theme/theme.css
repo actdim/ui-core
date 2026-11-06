@@ -210,6 +210,8 @@
   at the end to forbid them once the code is migrated.
 */
 
+/* Consumers scan ui-core components so classes used only there are generated (see debt--theme-single-source). */
+@source "../../dist/components";
 
 /* ============================================================================
    1. COLOR - SURFACES  (bg-surface-*)

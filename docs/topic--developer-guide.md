@@ -149,8 +149,13 @@ Applications frequently require domain-specific styles, layout geometries, or ic
    }
    ```
 
-4. **Domain Content Palettes**:
-   For domain-specific colors that are not part of the UI chrome (e.g. ebook sepia reader page background, syntax highlighting), declare them as dedicated CSS custom properties or domain constants, and merge them with `mergeClasses(...)`.
+4. **App Token Layer (Replacing Domain Constants for New Code)**:
+   For domain-specific colors that are not part of core UI chrome (e.g. ebook sepia reader page background, syntax highlighting), declare them in the app token layer (`src/theme/app-theme.css`) under `@theme static` and combine them via `createThemeKit(appThemeTokens)`. This gives app tokens full compile-time `tw()` validation alongside core tokens, replacing legacy domain constants for new code. For non-token dynamic classes or external libraries, merge with `mergeClasses(...)`.
+
+5. **Package Consumer Setup and Optional Peers**:
+   - Consumers import `@actdim/ui-core/theme.css` in their root CSS (e.g. `src/global.css`).
+   - `theme.css` includes `@source "../../dist/components";` (and fallback `@source "../components";`) so Tailwind v4 automatically discovers classes used by ui-core components even if consumers use atypical folder layouts.
+   - `@actdim/dynstruct-mui` and `vite` are marked as optional peer dependencies (`peerDependenciesMeta.*.optional: true`). Non-MUI consumers or build tools other than Vite can consume `@actdim/ui-core` without installing unneeded packages.
 
 ---
 

@@ -19,29 +19,30 @@
  */
 import { clsx } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
-import { themeTokens } from './theme.generated';
+import { themeTokens } from './theme.generated.ts';
+import type { ScaleNames, ThemeTokenSet, ThemeScaleNames } from './themeKit.ts';
 
 // ---------------------------------------------------------------------------
 // Scale types (derived from the generated tokens)
 // ---------------------------------------------------------------------------
 
-type Tokens = typeof themeTokens;
+type CoreNames = ScaleNames<typeof themeTokens>;
 
-export type ThemeColor = keyof Tokens['color'];
-export type ThemeSpacing = keyof Tokens['spacing'];
-export type ThemeContainer = keyof Tokens['container'];
-export type ThemeText = keyof Tokens['text'];
-export type ThemeFontWeight = keyof Tokens['fontWeight'];
-export type ThemeFont = keyof Tokens['font'];
-export type ThemeBorderWidth = keyof Tokens['borderWidth'];
-export type ThemeRingWidth = keyof Tokens['ringWidth'];
-export type ThemeOutlineWidth = keyof Tokens['outlineWidth'];
-export type ThemeRadius = keyof Tokens['radius'];
-export type ThemeShadow = keyof Tokens['shadow'];
-export type ThemeZIndex = keyof Tokens['zIndex'];
-export type ThemeDuration = keyof Tokens['duration'];
-export type ThemeEase = keyof Tokens['ease'];
-export type ThemeOpacity = keyof Tokens['opacity'];
+export type ThemeColor = CoreNames['color'];
+export type ThemeSpacing = CoreNames['spacing'];
+export type ThemeContainer = CoreNames['container'];
+export type ThemeText = CoreNames['text'];
+export type ThemeFontWeight = CoreNames['fontWeight'];
+export type ThemeFont = CoreNames['font'];
+export type ThemeBorderWidth = CoreNames['borderWidth'];
+export type ThemeRingWidth = CoreNames['ringWidth'];
+export type ThemeOutlineWidth = CoreNames['outlineWidth'];
+export type ThemeRadius = CoreNames['radius'];
+export type ThemeShadow = CoreNames['shadow'];
+export type ThemeZIndex = CoreNames['zIndex'];
+export type ThemeDuration = CoreNames['duration'];
+export type ThemeEase = CoreNames['ease'];
+export type ThemeOpacity = CoreNames['opacity'];
 
 /** Intent names, matching the `Intent` contract (each has -strong / -soft / -line / -contrast). */
 export type ThemeIntent = 'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'danger' | 'neutral';
@@ -51,14 +52,14 @@ export type ThemeIntent = 'primary' | 'secondary' | 'success' | 'info' | 'warnin
 // ---------------------------------------------------------------------------
 
 type ColorKeyword = 'transparent' | 'current' | 'inherit' | 'white' | 'black';
-type ColorName = ThemeColor | ColorKeyword;
-type ColorValue = ColorName | `${ColorName}/${number}`;
+type ColorName<N extends ThemeScaleNames> = N['color'] | ColorKeyword;
+type ColorValue<N extends ThemeScaleNames> = ColorName<N> | `${ColorName<N>}/${number}`;
 
 // Arbitrary spacing is allowed only when it is computed from theme variables or platform
 // insets, e.g. `pb-[calc(var(--spacing-bottom-nav)+env(safe-area-inset-bottom))]`.
 type TokenExpression = `[${string}var(--${string})${string}]` | `[${string}env(${string})${string}]`;
 // `safe`: app utilities pt-safe / pb-safe / pl-safe / pr-safe (global.css), device safe-area insets.
-type SpacingValue = ThemeSpacing | '0' | 'px' | 'safe' | TokenExpression;
+type SpacingValue<N extends ThemeScaleNames> = N['spacing'] | '0' | 'px' | 'safe' | TokenExpression;
 type BorderStyle = 'solid' | 'dashed' | 'dotted' | 'double' | 'hidden' | 'none';
 
 type ViewportUnit = 'vh' | 'vw' | 'vmin' | 'vmax' | 'dvh' | 'dvw' | 'svh' | 'svw' | 'lvh' | 'lvw';
@@ -71,8 +72,8 @@ type SizeKeyword =
 
 type FractionValue = `${number}/${number}`;
 
-type SizeValue =
-    | ThemeSpacing
+type SizeValue<N extends ThemeScaleNames> =
+    | N['spacing']
     | '0'
     | 'px'
     | SizeKeyword
@@ -80,7 +81,7 @@ type SizeValue =
     | TokenExpression
     | ViewportExpression;
 
-type MaxWidthValue = SizeValue | ThemeContainer | 'prose';
+type MaxWidthValue<N extends ThemeScaleNames> = SizeValue<N> | N['container'] | 'prose';
 
 type TextKeyword =
     | 'left' | 'center' | 'right' | 'justify' | 'start' | 'end'
@@ -119,45 +120,45 @@ type FreeRoot =
 type Ok = true;
 
 /** Validates a utility without variants and `!`. Returns Ok or false. */
-type CheckUtility<U extends string> =
+type CheckUtility<U extends string, N extends ThemeScaleNames> =
     U extends `${FreeRoot}` | `${FreeRoot}-${string}` ? Ok
     // spacing
-    : U extends `${'gap-x' | 'gap-y'}-${infer V}` ? (V extends SpacingValue ? Ok : false)
-    : U extends `gap-${infer V}` ? (V extends SpacingValue ? Ok : false)
-    : U extends `${'space-x' | 'space-y'}-${infer V}` ? (V extends SpacingValue | 'reverse' ? Ok : false)
-    : U extends `${PaddingRoot}-${infer V}` ? (V extends SpacingValue ? Ok : false)
-    : U extends `${MarginRoot}-${infer V}` ? (V extends SpacingValue | 'auto' ? Ok : false)
+    : U extends `${'gap-x' | 'gap-y'}-${infer V}` ? (V extends SpacingValue<N> ? Ok : false)
+    : U extends `gap-${infer V}` ? (V extends SpacingValue<N> ? Ok : false)
+    : U extends `${'space-x' | 'space-y'}-${infer V}` ? (V extends SpacingValue<N> | 'reverse' ? Ok : false)
+    : U extends `${PaddingRoot}-${infer V}` ? (V extends SpacingValue<N> ? Ok : false)
+    : U extends `${MarginRoot}-${infer V}` ? (V extends SpacingValue<N> | 'auto' ? Ok : false)
     // typography
-    : U extends `text-${infer V}` ? (V extends ThemeText | ColorValue | TextKeyword ? Ok : false)
-    : U extends `font-${infer V}` ? (V extends ThemeFont | ThemeFontWeight ? Ok : false)
+    : U extends `text-${infer V}` ? (V extends N['text'] | ColorValue<N> | TextKeyword ? Ok : false)
+    : U extends `font-${infer V}` ? (V extends N['font'] | N['fontWeight'] ? Ok : false)
     // backgrounds and gradient stops
-    : U extends `bg-${infer V}` ? (V extends ColorValue | BgKeyword ? Ok : false)
-    : U extends `${'from' | 'via' | 'to'}-${infer V}` ? (V extends ColorValue | `${number}%` ? Ok : false)
-    : U extends `${'fill' | 'stroke' | 'caret' | 'accent' | 'placeholder'}-${infer V}` ? (V extends ColorValue | 'none' | 'auto' | `${number}` ? Ok : false)
+    : U extends `bg-${infer V}` ? (V extends ColorValue<N> | BgKeyword ? Ok : false)
+    : U extends `${'from' | 'via' | 'to'}-${infer V}` ? (V extends ColorValue<N> | `${number}%` ? Ok : false)
+    : U extends `${'fill' | 'stroke' | 'caret' | 'accent' | 'placeholder'}-${infer V}` ? (V extends ColorValue<N> | 'none' | 'auto' | `${number}` ? Ok : false)
     // borders, dividers, rings, outlines
     : U extends 'border' | `border-${BorderSide}` ? Ok
-    : U extends `border-${BorderSide}-${infer V}` ? (V extends ThemeBorderWidth | '0' | ColorValue ? Ok : false)
-    : U extends `border-${infer V}` ? (V extends ThemeBorderWidth | '0' | ColorValue | BorderStyle | 'collapse' | 'separate' ? Ok : false)
+    : U extends `border-${BorderSide}-${infer V}` ? (V extends N['borderWidth'] | '0' | ColorValue<N> ? Ok : false)
+    : U extends `border-${infer V}` ? (V extends N['borderWidth'] | '0' | ColorValue<N> | BorderStyle | 'collapse' | 'separate' ? Ok : false)
     : U extends `divide-${'x' | 'y'}` ? Ok
-    : U extends `divide-${'x' | 'y'}-${infer V}` ? (V extends ThemeBorderWidth | '0' | 'reverse' ? Ok : false)
-    : U extends `divide-${infer V}` ? (V extends ColorValue | BorderStyle ? Ok : false)
+    : U extends `divide-${'x' | 'y'}-${infer V}` ? (V extends N['borderWidth'] | '0' | 'reverse' ? Ok : false)
+    : U extends `divide-${infer V}` ? (V extends ColorValue<N> | BorderStyle ? Ok : false)
     : U extends 'ring' | 'ring-inset' ? Ok
-    : U extends `ring-${infer V}` ? (V extends ThemeRingWidth | '0' | ColorValue ? Ok : false)
+    : U extends `ring-${infer V}` ? (V extends N['ringWidth'] | '0' | ColorValue<N> ? Ok : false)
     : U extends 'outline' ? Ok
-    : U extends `outline-${infer V}` ? (V extends ThemeOutlineWidth | '0' | ColorValue | BorderStyle ? Ok : false)
+    : U extends `outline-${infer V}` ? (V extends N['outlineWidth'] | '0' | ColorValue<N> | BorderStyle ? Ok : false)
     // corners, elevation, layers
-    : U extends `rounded-${RoundedSide}-${infer V}` ? (V extends ThemeRadius | 'none' | 'full' ? Ok : false)
-    : U extends `rounded-${infer V}` ? (V extends ThemeRadius | 'none' | 'full' ? Ok : false)
+    : U extends `rounded-${RoundedSide}-${infer V}` ? (V extends N['radius'] | 'none' | 'full' ? Ok : false)
+    : U extends `rounded-${infer V}` ? (V extends N['radius'] | 'none' | 'full' ? Ok : false)
     : U extends 'rounded' | 'shadow' ? false
-    : U extends `shadow-${infer V}` ? (V extends ThemeShadow | 'none' | ColorValue ? Ok : false)
-    : U extends `z-${infer V}` ? (V extends ThemeZIndex | '0' | 'auto' ? Ok : false)
+    : U extends `shadow-${infer V}` ? (V extends N['shadow'] | 'none' | ColorValue<N> ? Ok : false)
+    : U extends `z-${infer V}` ? (V extends N['zIndex'] | '0' | 'auto' ? Ok : false)
     // motion, opacity
-    : U extends `duration-${infer V}` ? (V extends ThemeDuration | '0' ? Ok : false)
-    : U extends `ease-${infer V}` ? (V extends ThemeEase | 'linear' ? Ok : false)
-    : U extends `opacity-${infer V}` ? (V extends ThemeOpacity | '0' | '100' ? Ok : false)
-    // object sizes (size, w, h, min-w, min-h, max-w, max-h)
-    : U extends `${'size' | 'w' | 'h' | 'min-w' | 'min-h' | 'max-h'}-${infer V}` ? (V extends SizeValue ? Ok : false)
-    : U extends `max-w-${infer V}` ? (V extends MaxWidthValue ? Ok : false)
+    : U extends `duration-${infer V}` ? (V extends N['duration'] | '0' ? Ok : false)
+    : U extends `ease-${infer V}` ? (V extends N['ease'] | 'linear' ? Ok : false)
+    : U extends `opacity-${infer V}` ? (V extends N['opacity'] | '0' | '100' ? Ok : false)
+    // object sizes (size, w, h, min-w, min-h, max-h)
+    : U extends `${'size' | 'w' | 'h' | 'min-w' | 'min-h' | 'max-h'}-${infer V}` ? (V extends SizeValue<N> ? Ok : false)
+    : U extends `max-w-${infer V}` ? (V extends MaxWidthValue<N> ? Ok : false)
     : U extends 'size' | 'w' | 'h' | 'min-w' | 'min-h' | 'max-w' | 'max-h' ? false
     : Ok;
 
@@ -171,14 +172,14 @@ type StripMarkers<C extends string> =
     : C extends `-${infer R}` ? StripMarkers<R>
     : C;
 
-type CheckClass<C extends string> =
-    CheckUtility<StripMarkers<StripVariants<C>>> extends Ok ? Ok : `Unknown theme class: ${C}`;
+type CheckClass<C extends string, N extends ThemeScaleNames> =
+    CheckUtility<StripMarkers<StripVariants<C>>, N> extends Ok ? Ok : `Unknown theme class: ${C}`;
 
 /** Validates a space-separated class list; returns Ok or the first error message. */
-type CheckList<S extends string> =
+type CheckList<S extends string, N extends ThemeScaleNames> =
     S extends `${infer Head} ${infer Rest}`
-        ? (Head extends '' ? CheckList<Rest> : CheckClass<Head> extends Ok ? CheckList<Rest> : CheckClass<Head>)
-        : S extends '' ? Ok : CheckClass<S>;
+        ? (Head extends '' ? CheckList<Rest, N> : CheckClass<Head, N> extends Ok ? CheckList<Rest, N> : CheckClass<Head, N>)
+        : S extends '' ? Ok : CheckClass<S, N>;
 
 // ---------------------------------------------------------------------------
 // tw()
@@ -189,60 +190,62 @@ declare const twBrand: unique symbol;
 /** A class list produced by tw(): already validated, safe to pass to another tw(). */
 export type TwClasses = string & { readonly [twBrand]: true };
 
-type TwArg = string | false | null | undefined | 0;
+export type TwArg = string | false | null | undefined | 0;
 
-type ValidateArg<A> =
+export type ValidateArg<A, N extends ThemeScaleNames = CoreNames> =
     A extends TwClasses ? A
     : A extends false | null | undefined | 0 ? A
     : string extends A ? 'tw(): pass string literals or tw() results, not string values'
-    : A extends string ? (CheckList<A> extends Ok ? A : CheckList<A>)
+    : A extends string ? (CheckList<A, N> extends Ok ? A : CheckList<A, N>)
     : never;
 
-type ValidateArgs<T extends readonly unknown[]> = { [K in keyof T]: ValidateArg<T[K]> };
+export type ValidateArgs<T extends readonly unknown[], N extends ThemeScaleNames = CoreNames> = {
+    [K in keyof T]: ValidateArg<T[K], N>;
+};
 
-const twMergeThemed = extendTailwindMerge({
-    extend: {
-        theme: {
-            color: Object.keys(themeTokens.color),
-            spacing: Object.keys(themeTokens.spacing),
-            container: Object.keys(themeTokens.container),
-            text: Object.keys(themeTokens.text),
-            font: Object.keys(themeTokens.font),
-            'font-weight': Object.keys(themeTokens.fontWeight),
-            radius: Object.keys(themeTokens.radius),
-            shadow: Object.keys(themeTokens.shadow),
-            ease: Object.keys(themeTokens.ease),
+export function createMergeClasses(tokens: Record<string, Record<string, any>>) {
+    const twMergeThemed = extendTailwindMerge({
+        extend: {
+            theme: {
+                color: Object.keys(tokens.color || {}),
+                spacing: Object.keys(tokens.spacing || {}),
+                container: Object.keys(tokens.container || {}),
+                text: Object.keys(tokens.text || {}),
+                font: Object.keys(tokens.font || {}),
+                'font-weight': Object.keys(tokens.fontWeight || {}),
+                radius: Object.keys(tokens.radius || {}),
+                shadow: Object.keys(tokens.shadow || {}),
+                ease: Object.keys(tokens.ease || {}),
+            },
+            classGroups: {
+                'border-w': [{ border: Object.keys(tokens.borderWidth || {}) }],
+                'border-w-x': [{ 'border-x': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-y': [{ 'border-y': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-s': [{ 'border-s': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-e': [{ 'border-e': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-t': [{ 'border-t': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-r': [{ 'border-r': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-b': [{ 'border-b': Object.keys(tokens.borderWidth || {}) }],
+                'border-w-l': [{ 'border-l': Object.keys(tokens.borderWidth || {}) }],
+                'divide-x': [{ 'divide-x': Object.keys(tokens.borderWidth || {}) }],
+                'divide-y': [{ 'divide-y': Object.keys(tokens.borderWidth || {}) }],
+                'ring-w': [{ ring: Object.keys(tokens.ringWidth || {}) }],
+                'outline-w': [{ outline: Object.keys(tokens.outlineWidth || {}) }],
+                z: [{ z: Object.keys(tokens.zIndex || {}) }],
+                duration: [{ duration: Object.keys(tokens.duration || {}) }],
+                opacity: [{ opacity: Object.keys(tokens.opacity || {}) }],
+            },
         },
-        classGroups: {
-            'border-w': [{ border: Object.keys(themeTokens.borderWidth) }],
-            'border-w-x': [{ 'border-x': Object.keys(themeTokens.borderWidth) }],
-            'border-w-y': [{ 'border-y': Object.keys(themeTokens.borderWidth) }],
-            'border-w-s': [{ 'border-s': Object.keys(themeTokens.borderWidth) }],
-            'border-w-e': [{ 'border-e': Object.keys(themeTokens.borderWidth) }],
-            'border-w-t': [{ 'border-t': Object.keys(themeTokens.borderWidth) }],
-            'border-w-r': [{ 'border-r': Object.keys(themeTokens.borderWidth) }],
-            'border-w-b': [{ 'border-b': Object.keys(themeTokens.borderWidth) }],
-            'border-w-l': [{ 'border-l': Object.keys(themeTokens.borderWidth) }],
-            'divide-x': [{ 'divide-x': Object.keys(themeTokens.borderWidth) }],
-            'divide-y': [{ 'divide-y': Object.keys(themeTokens.borderWidth) }],
-            'ring-w': [{ ring: Object.keys(themeTokens.ringWidth) }],
-            'outline-w': [{ outline: Object.keys(themeTokens.outlineWidth) }],
-            z: [{ z: Object.keys(themeTokens.zIndex) }],
-            duration: [{ duration: Object.keys(themeTokens.duration) }],
-            opacity: [{ opacity: Object.keys(themeTokens.opacity) }],
-        },
-    },
-});
+    });
 
-/** Merges class names with theme-aware conflict resolution (no compile-time validation). */
-export function mergeClasses(...inputs: Parameters<typeof clsx>): string {
-    return twMergeThemed(clsx(inputs));
+    return (...inputs: Parameters<typeof clsx>): string => twMergeThemed(clsx(inputs));
 }
 
-/** Typed, validated class list. See the file header. */
-export function tw<const T extends readonly TwArg[]>(...classes: ValidateArgs<T>): TwClasses {
+export const mergeClasses = createMergeClasses(themeTokens);
+
+export function tw<const A extends readonly TwArg[]>(...classes: ValidateArgs<A, CoreNames>): TwClasses {
     return mergeClasses(...(classes as unknown as TwArg[])) as TwClasses;
 }
 
-export { themeVar, type ThemeVarFn, type TokenName, type TokenScale } from './themeVar';
-export { themeRuntime, themeCssVars, type ThemeRuntimeContract, type ThemeOverrideMap } from './themeRuntime';
+export { themeVar, type ThemeVarFn, type TokenName, type TokenScale } from './themeVar.ts';
+export { themeRuntime, themeCssVars, type ThemeRuntimeContract, type ThemeOverrideMap } from './themeRuntime.ts';

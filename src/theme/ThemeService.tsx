@@ -15,6 +15,7 @@ import {
     type ThemeMsgChannels,
     type ThemeServiceOptions,
 } from './themeTypes';
+import { themeChromeColors } from './themeChrome.ts';
 
 export const DEFAULT_THEME_STORAGE_KEY = 'actdim_theme_preference';
 
@@ -106,7 +107,7 @@ export const applyThemeToMeta = (mode: ThemeMode): void => {
         return;
     }
 
-    const color = mode === 'dark' ? '#0f172a' : '#ffffff';
+    const color = themeChromeColors[mode];
     const metaTags = document.querySelectorAll('meta[name="theme-color"]');
     if (metaTags.length > 0) {
         metaTags.forEach((meta) => {
